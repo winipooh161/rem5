@@ -39,6 +39,7 @@ class Project extends Model
         'contract_date',
         'contract_number',
         'work_start_date',
+        'work_end_date',
         'work_amount',
         'materials_amount',
         'camera_link',
@@ -73,6 +74,7 @@ class Project extends Model
     protected $casts = [
         'contract_date' => 'date',
         'work_start_date' => 'date',
+        'work_end_date' => 'date',
         'passport_issued_date' => 'date',
         'client_birth_date' => 'date',
         'work_amount' => 'decimal:2',

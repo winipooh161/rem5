@@ -44,7 +44,8 @@
                         
                         <div class="mb-3">
                             <label for="project_id" class="form-label">Объект</label>
-                            <select class="form-select @error('project_id') is-invalid @enderror" id="project_id" name="project_id">
+                            <select class="project-search-select @error('project_id') is-invalid @enderror" id="project_id" name="project_id" style="width: 100%;" data-placeholder="Выберите объект">
+                                <option value=""></option>
                                 <option value="">Выберите объект</option>
                                 @foreach($projects as $project)
                                     <option value="{{ $project->id }}" {{ old('project_id') == $project->id ? 'selected' : '' }}>
@@ -272,8 +273,19 @@ function populateSectionSelects() {
     sectionFilterSelect.innerHTML = '<option value="">Все разделы</option>';
     
     // Заполняем данными из нашего шаблона
-    fetch('/partner/excel-templates/sections-data')
-        .then(response => response.json())
+    fetch('/api/excel-templates/sections-data', {
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success && data.sections) {
                 templateSections = data.sections;
@@ -604,6 +616,132 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+});
+</script>
+
+<!-- Select2 уже подключен в app.blade.php, повторное подключение не требуется -->
+
+<style>
+/* Кастомные стили для Select2 */
+.select2-container--bootstrap-5 .select2-selection {
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+    font-size: 1rem;
+    padding: 0.375rem 0.75rem;
+    height: auto;
+}
+
+.select2-container--bootstrap-5 .select2-selection--single {
+    height: calc(2.25rem + 2px);
+}
+
+.select2-container--bootstrap-5 .select2-selection__rendered {
+    line-height: 1.5;
+    padding-left: 0;
+    color: #495057;
+}
+
+.select2-container--bootstrap-5 .select2-selection__arrow {
+    height: calc(2.25rem);
+    right: 0.25rem;
+}
+
+.select2-container--bootstrap-5.select2-container--focus .select2-selection,
+.select2-container--bootstrap-5.select2-container--open .select2-selection {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Дополнительные стили для результатов и выпадающего списка */
+.select2-container--bootstrap-5 .select2-dropdown {
+    border-color: #86b7fe;
+    border-radius: 0.25rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.175);
+}
+
+.select2-container--bootstrap-5 .select2-dropdown .select2-search .select2-search__field {
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    padding: 0.375rem 0.75rem;
+}
+
+.select2-container--bootstrap-5 .select2-dropdown .select2-results__option--highlighted[aria-selected] {
+    background-color: #0d6efd;
+    color: #fff;
+}
+
+/* Сброс стилей Bootstrap для select внутри Select2 */
+.project-search-select {
+    width: 100%;
+}
+</style>
+
+<script>
+$(document).ready(function() {
+    console.log('jQuery loaded:', typeof $ !== 'undefined');
+    console.log('Select2 loaded:', typeof $.fn.select2 !== 'undefined');
+    
+    // Проверяем наличие Select2
+    if (typeof $.fn.select2 === 'undefined') {
+        console.error('Select2 не загружен!');
+        
+        // Пробуем загрузить динамически
+        var cssLink = document.createElement('link');
+        cssLink.rel = 'stylesheet';
+        cssLink.href = 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css';
+        document.head.appendChild(cssLink);
+        
+        var cssThemeLink = document.createElement('link');
+        cssThemeLink.rel = 'stylesheet';
+        cssThemeLink.href = 'https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css';
+        document.head.appendChild(cssThemeLink);
+        
+        var scriptTag = document.createElement('script');
+        scriptTag.src = 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js';
+        scriptTag.onload = initSelect2;
+        document.body.appendChild(scriptTag);
+        return;
+    }
+    
+    initSelect2();
+    
+    function initSelect2() {
+        // Инициализация Select2 для поиска проектов с локальным поиском
+        $('.project-search-select').select2({
+            theme: 'bootstrap-5',
+            placeholder: 'Выберите или найдите объект...',
+            allowClear: true,
+            width: '100%',
+            language: {
+                noResults: function() {
+                    return "Ничего не найдено";
+                },
+                searching: function() {
+                    return "Поиск...";
+                }
+            },
+            // Добавляем локальный поиск по загруженным опциям
+            matcher: function(params, data) {
+                // Если нет поискового запроса, вернуть все данные
+                if ($.trim(params.term) === '') {
+                    return data;
+                }
+                
+                // Если данных нет, вернуть null
+                if (typeof data.text === 'undefined') {
+                    return null;
+                }
+                
+                // Поиск по тексту опции без учета регистра
+                if (data.text.toLowerCase().indexOf(params.term.toLowerCase()) > -1) {
+                    return data;
+                }
+                
+                // Ничего не нашли
+                return null;
+            }
+        });
+    }
 });
 </script>
 

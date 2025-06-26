@@ -55,4 +55,113 @@
         </div>
     </div>
 </div>
+
+<style>
+/* Мобильная адаптация для страницы смены пароля */
+@media (max-width: 768px) {
+    .col-md-8 {
+        padding: 0 0.5rem;
+    }
+    
+    .card-header .d-flex {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 1rem;
+    }
+    
+    .card-header h4 {
+        text-align: center;
+        margin-bottom: 0;
+    }
+    
+    .btn-outline-secondary {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .container-fluid {
+        padding: 0 0.5rem;
+    }
+    
+    .card {
+        margin: 0.5rem 0;
+        border-radius: 1rem;
+    }
+    
+    .card-header {
+        padding: 1rem;
+        text-align: center;
+    }
+    
+    .card-header h4 {
+        font-size: 1.3rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .form-control {
+        padding: 0.75rem;
+        font-size: 1rem;
+        border-radius: 0.5rem;
+    }
+    
+    .btn {
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        border-radius: 0.5rem;
+        width: 100%;
+    }
+    
+    .form-text {
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+    }
+    
+    .mb-3 {
+        margin-bottom: 1.5rem !important;
+    }
+    
+    .d-grid.gap-2.d-md-flex {
+        display: grid !important;
+        gap: 0.75rem !important;
+    }
+}
+
+@media (max-width: 400px) {
+    .card {
+        margin: 0.25rem 0;
+    }
+    
+    .card-header h4 {
+        font-size: 1.2rem;
+    }
+    
+    .card-body {
+        padding: 0.75rem;
+    }
+    
+    .form-control {
+        padding: 0.65rem;
+        font-size: 0.95rem;
+    }
+    
+    .btn {
+        padding: 0.65rem 0.85rem;
+        font-size: 0.9rem;
+    }
+    
+    .form-text {
+        font-size: 0.8rem;
+    }
+}
+</style>
 @endsection

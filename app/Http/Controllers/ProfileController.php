@@ -6,18 +6,23 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rule;
+use App\Services\SmsService;
 
 class ProfileController extends Controller
 {
+    protected $smsService;
+
     /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(SmsService $smsService)
     {
         $this->middleware('auth');
+        $this->smsService = $smsService;
     }
 
     /**
@@ -117,5 +122,179 @@ class ProfileController extends Controller
         $user->save();
 
         return redirect()->route('profile.index')->with('success', 'Пароль успешно изменен.');
+    }
+
+    /**
+     * Отправить код подтверждения на текущий номер телефона
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function sendPhoneVerificationCode(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string',
+            'type' => 'required|string|in:current'
+        ]);
+
+        $user = Auth::user();
+        $phone = $request->phone;
+
+        // Проверяем, что номер соответствует текущему номеру пользователя
+        $cleanUserPhone = preg_replace('/[^0-9]/', '', $user->phone);
+        $cleanRequestPhone = preg_replace('/[^0-9]/', '', $phone);
+
+        if ($cleanUserPhone !== $cleanRequestPhone) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Номер телефона не соответствует вашему текущему номеру'
+            ], 400);
+        }
+
+        try {
+            $code = $this->smsService->generateCode();
+            
+            // Сохраняем код в кеше на 10 минут
+            $cacheKey = 'phone_verification_' . $user->id . '_' . $cleanRequestPhone;
+            Cache::put($cacheKey, $code, now()->addMinutes(10));
+
+            // Отправляем SMS
+            $result = $this->smsService->send($phone, "Код подтверждения для смены номера телефона: {$code}");
+
+            if ($result) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Код подтверждения отправлен на ваш номер телефона'
+                ]);
+            } else {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Ошибка при отправке SMS'
+                ], 500);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Произошла ошибка при отправке SMS: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Проверить код подтверждения номера телефона
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function verifyPhoneCode(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string',
+            'code' => 'required|string|size:4',
+            'type' => 'required|string|in:current'
+        ]);
+
+        $user = Auth::user();
+        $phone = $request->phone;
+        $code = $request->code;
+
+        // Проверяем, что номер соответствует текущему номеру пользователя
+        $cleanUserPhone = preg_replace('/[^0-9]/', '', $user->phone);
+        $cleanRequestPhone = preg_replace('/[^0-9]/', '', $phone);
+
+        if ($cleanUserPhone !== $cleanRequestPhone) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Номер телефона не соответствует вашему текущему номеру'
+            ], 400);
+        }
+
+        // Получаем код из кеша
+        $cacheKey = 'phone_verification_' . $user->id . '_' . $cleanRequestPhone;
+        $cachedCode = Cache::get($cacheKey);
+
+        if (!$cachedCode) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Код устарел или не найден. Запросите новый код.'
+            ], 400);
+        }
+
+        if ($cachedCode != $code) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Неверный код подтверждения'
+            ], 400);
+        }
+
+        // Код правильный, помечаем номер как подтвержденный
+        $verificationKey = 'phone_verified_' . $user->id . '_' . $cleanRequestPhone;
+        Cache::put($verificationKey, true, now()->addMinutes(30)); // 30 минут на смену номера
+
+        // Удаляем использованный код
+        Cache::forget($cacheKey);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Номер телефона успешно подтвержден'
+        ]);
+    }
+
+    /**
+     * Обновить номер телефона после подтверждения
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updatePhone(Request $request)
+    {
+        $request->validate([
+            'new_phone' => 'required|string|unique:users,phone'
+        ]);
+
+        $user = Auth::user();
+        $newPhone = $request->new_phone;
+
+        // Очищаем номер от форматирования
+        $cleanUserPhone = preg_replace('/[^0-9]/', '', $user->phone);
+        $cleanNewPhone = preg_replace('/[^0-9]/', '', $newPhone);
+
+        // Проверяем, что текущий номер был подтвержден
+        $verificationKey = 'phone_verified_' . $user->id . '_' . $cleanUserPhone;
+        $isVerified = Cache::get($verificationKey);
+
+        if (!$isVerified) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Сначала необходимо подтвердить текущий номер телефона'
+            ], 400);
+        }
+
+        // Проверяем, что новый номер отличается от текущего
+        if ($cleanUserPhone === $cleanNewPhone) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Новый номер не может совпадать с текущим'
+            ], 400);
+        }
+
+        try {
+            // Обновляем номер телефона
+            $user->phone = $cleanNewPhone;
+            $user->save();
+
+            // Удаляем флаг подтверждения
+            Cache::forget($verificationKey);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Номер телефона успешно изменен'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Произошла ошибка при сохранении нового номера: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

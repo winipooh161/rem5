@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Partner;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\SmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -12,6 +13,13 @@ use Illuminate\Support\Facades\Log;
 
 class EmployeeController extends Controller
 {
+    protected $smsService;
+
+    public function __construct(SmsService $smsService)
+    {
+        $this->smsService = $smsService;
+    }
+
     /**
      * Отображает список сотрудников партнера
      */
@@ -93,6 +101,15 @@ class EmployeeController extends Controller
                 ]);
 
                 if ($updated) {
+                    // Отправляем SMS уведомление сотруднику
+                    $partner = Auth::user();
+                    $this->smsService->sendEmployeeNotification(
+                        $phone,
+                        $partner->name ?? 'Партнер',
+                        'сметчик',
+                        false // это не новый пользователь
+                    );
+
                     return redirect()->route('partner.employees.index')
                         ->with('success', 'Сотрудник ' . $existingUser->name . ' успешно добавлен в вашу команду.');
                 } else {
@@ -118,6 +135,15 @@ class EmployeeController extends Controller
                         'partner_id' => $newUser->partner_id,
                         'role' => $newUser->role
                     ]);
+
+                    // Отправляем SMS уведомление новому сотруднику
+                    $partner = Auth::user();
+                    $this->smsService->sendEmployeeNotification(
+                        $phone,
+                        $partner->name ?? 'Партнер',
+                        'сметчик',
+                        true // это новый пользователь
+                    );
 
                     return redirect()->route('partner.employees.index')
                         ->with('success', 'Новый сотрудник создан и добавлен в вашу команду. Пароль по умолчанию: password123');

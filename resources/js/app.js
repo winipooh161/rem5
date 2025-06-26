@@ -4,14 +4,7 @@ import $ from 'jquery';
 // Глобальный доступ к jQuery
 window.$ = window.jQuery = $;
 
-// Проверка загрузки Bootstrap и инициализация необходимых компонентов
-document.addEventListener('DOMContentLoaded', function() {
-    if (typeof bootstrap !== 'undefined') {
-        console.log('Bootstrap доступен и готов к использованию');
-    } else {
-        console.warn('Bootstrap не определен! Проверьте импорты в bootstrap.js');
-    }
-});
+
 
 // Функция для инициализации всех компонентов Bootstrap
 function initializeBootstrapComponents() {
@@ -48,29 +41,59 @@ function initializeSidebar() {
             document.getElementById('sidebar').classList.add('active');
             
             // Добавляем затемняющий фон
-            const overlay = document.createElement('div');
-            overlay.className = 'sidebar-overlay';
-            overlay.addEventListener('click', function() {
-                document.getElementById('sidebar').classList.remove('active');
-                document.body.removeChild(overlay);
-            });
-            document.body.appendChild(overlay);
+            addSidebarOverlay();
         });
     }
     
-    // Обработчик для скрытия боковой панели
-    const sidebarCollapse = document.getElementById('sidebarCollapse');
-    if (sidebarCollapse) {
-        sidebarCollapse.addEventListener('click', function() {
-            document.getElementById('sidebar').classList.remove('active');
-            
-            // Удаляем затемняющий фон, если он существует
-            const overlay = document.querySelector('.sidebar-overlay');
-            if (overlay) {
-                document.body.removeChild(overlay);
+    // Функция для добавления затемняющего фона
+    function addSidebarOverlay() {
+        // Убедимся, что старый overlay удален
+        removeSidebarOverlay();
+        
+        // Создаем новый overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'sidebar-overlay';
+        overlay.id = 'sidebarOverlay';
+        
+        // Добавляем обработчик клика по overlay
+        overlay.addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.classList.remove('active');
             }
+            removeSidebarOverlay();
         });
+        
+        document.body.appendChild(overlay);
+        console.log('Overlay добавлен');
     }
+    
+    // Функция для удаления затемняющего фона
+    function removeSidebarOverlay() {
+        const overlay = document.getElementById('sidebarOverlay');
+        if (overlay && overlay.parentNode) {
+            overlay.parentNode.removeChild(overlay);
+            console.log('Overlay удален');
+        }
+    }
+    
+    // Добавляем обработчик клика по документу для закрытия сайдбара при клике вне его
+    document.addEventListener('mousedown', function(event) {
+        const sidebar = document.getElementById('sidebar');
+        const sidebarCollapseShow = document.getElementById('sidebarCollapseShow');
+        
+        // Проверяем, что сайдбар активен, клик был вне его и не по кнопке открытия
+        if (
+            sidebar && 
+            sidebar.classList.contains('active') && 
+            !sidebar.contains(event.target) && 
+            (!sidebarCollapseShow || !sidebarCollapseShow.contains(event.target))
+        ) {
+            sidebar.classList.remove('active');
+            removeSidebarOverlay();
+            console.log('Сайдбар закрыт по клику вне области');
+        }
+    });
 }
 
 // Инициализируем компоненты при загрузке страницы

@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Partner\ProjectScheduleController;
+use App\Http\Controllers\Partner\ExcelTemplateController;
+use App\Http\Controllers\Partner\ProjectController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,12 +17,18 @@ use App\Http\Controllers\Partner\ProjectScheduleController;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+Route::middleware(['web', 'auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
 });
 
 // API маршруты для работы с графиком проекта
-Route::middleware('auth')->group(function () {
+Route::middleware(['web', 'auth'])->group(function () {
+    // Поиск проектов для select'ов (используем web auth вместо sanctum)
+    Route::get('/projects/search', [ProjectController::class, 'search']);
+    
+    // Получение данных разделов для создания смет
+    Route::get('/excel-templates/sections-data', [ExcelTemplateController::class, 'getSectionsData']);
+    
     // Получение списка элементов графика с фильтрацией
     Route::get('/projects/{project}/schedule', [ProjectScheduleController::class, 'getItems']);
     

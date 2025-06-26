@@ -3,7 +3,12 @@
 @section('content')
 <div class="container-fluid">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
-        <h1 class="h3 mb-3 mb-md-0">Объекты</h1>
+        <div>
+            <h1 class="h3 mb-2 mb-md-0">Объекты</h1>
+            <p class="text-muted mb-3" id="projects-counter">
+                Показано: <span>{{ $projects->count() }}</span> из <span>{{ $projects->total() }}</span> объектов
+            </p>
+        </div>
         <a href="{{ route('partner.projects.create') }}" class="btn btn-primary">
             <i class="fas fa-plus-circle me-2"></i>Создать объект
         </a>
@@ -61,6 +66,20 @@
                             </select>
                         </div>
                         
+                        @if(Auth::user()->role === 'admin')
+                        <div class="col-6 col-md-4 mb-2">
+                            <label class="d-block d-md-none small mb-1">Партнер</label>
+                            <select class="form-select" name="partner_id" id="partner_id">
+                                <option value="">Все партнеры</option>
+                                @foreach(\App\Models\User::where('role', 'partner')->orderBy('name')->get() as $partner)
+                                <option value="{{ $partner->id }}" {{ isset($filters['partner_id']) && $filters['partner_id'] == $partner->id ? 'selected' : '' }}>
+                                    {{ $partner->name }}
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @endif
+                        
                         <div class="col-6 d-md-none">
                             <a href="{{ route('partner.projects.index', ['clear' => true]) }}" class="btn btn-outline-secondary w-100">
                                 Сбросить
@@ -101,6 +120,11 @@
                           ($filters['work_type'] == 'design' ? 'Дизайн' : 'Строительство') }}
                     </span>
                 @endif
+                @if(Auth::user()->role === 'admin' && !empty($filters['partner_id']))
+                    <span class="badge bg-light text-dark me-2">Партнер: 
+                        {{ \App\Models\User::find($filters['partner_id'])->name ?? 'Не найден' }}
+                    </span>
+                @endif
             </div>
         </div>
     @endif
@@ -121,26 +145,59 @@
             </div>
         </div>
     @else
-        <div class="row">
-            @foreach($projects as $project)
+        <div class="row" id="projects-container">
+            @include('partner.projects.partials.projects-cards')
+        </div>
+        
+        <!-- Скрытый элемент для хранения данных о пагинации -->
+        <div id="pagination-data" class="d-none" 
+             data-current-page="{{ $projects->currentPage() }}" 
+             data-last-page="{{ $projects->lastPage() }}" 
+             data-has-more-pages="{{ $projects->hasMorePages() ? 'true' : 'false' }}">
+        </div>
+        
+        <div id="loading-indicator" class="my-4" style="display: none;">
+            <div class="text-center mb-3 loading-pulse">
+                <div class="spinner-grow spinner-grow-sm text-primary me-1" role="status">
+                    <span class="visually-hidden">Загрузка...</span>
+                </div>
+                <div class="spinner-grow spinner-grow-sm text-primary me-1" role="status">
+                    <span class="visually-hidden">Загрузка...</span>
+                </div>
+                <div class="spinner-grow spinner-grow-sm text-primary" role="status">
+                    <span class="visually-hidden">Загрузка...</span>
+                </div>
+                <p class="mt-2 text-muted">Загрузка объектов...</p>
+            </div>
+            
+            <div class="row" id="skeleton-loader">
+                <!-- Скелетон-карточки для визуализации загрузки -->
+                @for ($i = 0; $i < 3; $i++)
                 <div class="col-12 col-md-6 col-xl-4 mb-3">
-                    <div class="card h-100 project-card">
+                    <div class="card h-100 skeleton-card">
                         <div class="card-header d-flex justify-content-between align-items-center p-2 px-3">
-                            <h5 class="card-title mb-0 text-truncate" style="max-width: 70%;">
-                                <a href="{{ route('partner.projects.show', $project) }}" class="text-decoration-none text-dark stretched-link">
-                                    {{ $project->client_name }}
-                                </a>
-                            </h5>
-                            <span class="badge {{ $project->status == 'active' ? 'bg-success' : ($project->status == 'paused' ? 'bg-warning' : ($project->status == 'completed' ? 'bg-info' : 'bg-secondary')) }}">
-                                {{ ucfirst($project->status) }}
-                            </span>
+                            <div class="skeleton-text" style="width: 70%;"></div>
+                            <div class="skeleton-badge"></div>
                         </div>
                         <div class="card-body p-3">
                             <div class="mb-2">
-                                <div class="d-flex align-items-start">
-                                    <i class="fas fa-map-marker-alt text-muted mt-1 me-2"></i>
-                                    <div class="text-truncate" style="max-width: 100%;">
-                                        {{ $project->address }}{{ $project->apartment_number ? ', кв. ' . $project->apartment_number : '' }}
+                                <div class="d-flex">
+                                    <div class="skeleton-icon me-2"></div>
+                                    <div class="skeleton-text" style="width: 90%;"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-2">
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center">
+                                        <div class="skeleton-icon me-2"></div>
+                                        <div class="skeleton-text" style="width: 80%;"></div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center justify-content-end">
+                                        <div class="skeleton-icon me-2"></div>
+                                        <div class="skeleton-text" style="width: 50%;"></div>
                                     </div>
                                 </div>
                             </div>
@@ -148,68 +205,41 @@
                             <div class="row mb-2">
                                 <div class="col-6">
                                     <div class="d-flex align-items-center">
-                                        <i class="fas fa-phone text-muted me-2"></i>
-                                        <div class="text-truncate">{{ $project->phone }}</div>
+                                        <div class="skeleton-icon me-2"></div>
+                                        <div class="skeleton-text" style="width: 70%;"></div>
                                     </div>
                                 </div>
-                                <div class="col-6 text-end">
-                                    <div class="d-flex align-items-center justify-content-end">
-                                        <i class="fas fa-ruler-combined text-muted me-2"></i>
-                                        {{ $project->area ?? '-' }} м²
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="row mb-2">
                                 <div class="col-6">
-                                    <div class="d-flex align-items-center">
-                                        <i class="fas fa-tools text-muted me-2"></i>
-                                        <span class="text-truncate">{{ $project->work_type_text }}</span>
-                                    </div>
-                                </div>
-                                <div class="col-6 text-end">
                                     <div class="d-flex align-items-center justify-content-end">
-                                        <i class="fas fa-home text-muted me-2"></i>
-                                        <span class="text-truncate">{{ $project->object_type ?? 'Не указан' }}</span>
+                                        <div class="skeleton-icon me-2"></div>
+                                        <div class="skeleton-text" style="width: 60%;"></div>
                                     </div>
                                 </div>
                             </div>
                             
                             <hr class="my-2">
                             
-                            @if($project->contract_date)
-                            <div class="small text-muted mb-1">
-                                <i class="fas fa-file-signature me-1"></i> Договор: 
-                                {{ $project->contract_date->format('d.m.Y') }}, 
-                                №{{ $project->contract_number ?? '-' }}
-                            </div>
-                            @endif
+                            <div class="skeleton-text mb-2" style="width: 90%;"></div>
+                            <div class="skeleton-text mb-2" style="width: 85%;"></div>
                             
-                            <div class="small text-end">
-                                <strong>
-                                    <i class="fas fa-money-bill-wave text-success me-1"></i>
-                                    {{ number_format($project->total_amount, 0, '.', ' ') }} ₽
-                                </strong>
+                            <div class="text-end">
+                                <div class="skeleton-text" style="width: 40%; float: right;"></div>
                             </div>
                         </div>
                         <div class="card-footer d-flex p-2">
-                            <a href="{{ route('partner.projects.edit', $project) }}" class="btn btn-sm btn-outline-secondary flex-grow-1 me-2">
-                                <i class="fas fa-edit"></i>
-                                <span class="ms-1">Редактировать</span>
-                            </a>
-                            <a href="{{ route('partner.projects.show', $project) }}" class="btn btn-sm btn-primary flex-grow-1">
-                                <i class="fas fa-eye"></i>
-                                <span class="ms-1">Просмотр</span>
-                            </a>
+                            <div class="skeleton-button me-2" style="width: 50%;"></div>
+                            <div class="skeleton-button" style="width: 50%;"></div>
                         </div>
                     </div>
                 </div>
-            @endforeach
+                @endfor
+            </div>
         </div>
         
-        <div class="d-flex justify-content-center mt-4">
-            <div class="pagination-container overflow-auto px-2 py-1 hide-scroll">
-                {{ $projects->links() }}
+        <div id="end-of-content" class="text-center my-4 py-3" style="display: none;">
+            <div class="d-inline-block px-4 py-3 rounded-pill bg-light">
+                <i class="fas fa-check-circle text-success me-2"></i>
+                <span class="text-muted">Вы просмотрели все объекты</span>
             </div>
         </div>
     @endif
@@ -219,8 +249,11 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Получаем элементы формы
         const filterForm = document.getElementById('filterForm');
-        const filterSelects = filterForm.querySelectorAll('select');
-        const searchInput = filterForm.querySelector('input[name="search"]');
+        
+        // Проверяем существование формы фильтров перед работой с ней
+        if (filterForm) {
+            const filterSelects = filterForm.querySelectorAll('select');
+            const searchInput = filterForm.querySelector('input[name="search"]');
         
         // Авто-отправка формы при изменении селектов
         filterSelects.forEach(function(select) {
@@ -245,11 +278,168 @@
             }
         });
         
-        // Сбросить таймер, если пользователь продолжил печатать
-        searchInput.addEventListener('keydown', function() {
-            clearTimeout(typingTimer);
+        // Логика бесконечной прокрутки и подгрузки объектов
+        const projectsContainer = document.getElementById('projects-container');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const endOfContentMsg = document.getElementById('end-of-content');
+        const paginationData = document.getElementById('pagination-data');
+        
+        // Глобальная переменная для отслеживания состояния загрузки
+        let isLoading = false;
+        let hasReachedEnd = false;
+        
+        // Функция для проверки, достигли ли мы последней страницы
+        function isLastPage() {
+            if (!paginationData) return true;
+            
+            const currentPage = parseInt(paginationData.dataset.currentPage);
+            const lastPage = parseInt(paginationData.dataset.lastPage);
+            return currentPage >= lastPage;
+        }
+        
+        // Функция для обновления данных о пагинации
+        function updatePaginationData(currentPage, hasMorePages) {
+            if (paginationData) {
+                paginationData.dataset.currentPage = currentPage;
+                paginationData.dataset.hasMorePages = hasMorePages ? 'true' : 'false';
+            }
+        }
+        
+        // Функция для загрузки дополнительных проектов
+        function loadMoreProjects() {
+            // Если уже идет загрузка или достигнута последняя страница, выходим
+            if (isLoading || hasReachedEnd || !paginationData) {
+                return;
+            }
+            
+            // Устанавливаем состояние загрузки
+            isLoading = true;
+            loadingIndicator.style.display = 'block';
+            
+            // Создаем URL с параметрами из текущего URL
+            const url = new URL(window.location.href);
+            const currentPage = parseInt(paginationData.dataset.currentPage);
+            url.searchParams.set('page', currentPage + 1);
+            url.searchParams.set('ajax', '1');
+            
+            // Получаем данные через AJAX
+            fetch(url.toString(), {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Ошибка сети: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Добавляем новые проекты
+                projectsContainer.insertAdjacentHTML('beforeend', data.html);
+                
+                // Обновляем текущую страницу
+                updatePaginationData(currentPage + 1, data.hasMorePages);
+                
+                // Проверяем, есть ли еще страницы
+                if (currentPage + 1 >= parseInt(paginationData.dataset.lastPage)) {
+                    hasReachedEnd = true;
+                    endOfContentMsg.style.display = 'block';
+                } 
+                
+                // Обновляем счетчик проектов
+                const projectsCounter = document.getElementById('projects-counter');
+                if (projectsCounter) {
+                    const total = data.total || 0;
+                    const perPage = data.perPage || 10;
+                    const loaded = perPage * (currentPage + 1);
+                    
+                    const spans = projectsCounter.querySelectorAll('span');
+                    if (spans.length >= 2) {
+                        spans[0].textContent = Math.min(loaded, total);
+                        spans[1].textContent = total;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка при загрузке проектов:', error);
+                // Показываем уведомление об ошибке пользователю
+                const errorNotification = document.createElement('div');
+                errorNotification.className = 'alert alert-danger alert-dismissible fade show mt-3';
+                errorNotification.innerHTML = `
+                    Ошибка при загрузке данных. <button class="btn btn-sm btn-outline-danger ms-2" onclick="loadMoreProjects()">Повторить</button>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                projectsContainer.parentNode.insertBefore(errorNotification, projectsContainer.nextSibling);
+            })
+            .finally(() => {
+                // Сбрасываем состояние загрузки
+                setTimeout(() => {
+                    isLoading = false;
+                    loadingIndicator.style.display = 'none';
+                }, 500); // Небольшая задержка для предотвращения многократных запросов
+            });
+        }
+        
+        // Добавляем обработчик прокрутки страницы для автоматической подгрузки
+        let scrollDebounceTimer;
+        window.addEventListener('scroll', function() {
+            if (scrollDebounceTimer) clearTimeout(scrollDebounceTimer);
+            
+            scrollDebounceTimer = setTimeout(() => {
+                // Если уже идет загрузка или достигнут конец контента, выходим
+                if (isLoading || hasReachedEnd) {
+                    return;
+                }
+                
+                // Проверяем, достиг ли пользователь конца страницы
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const windowHeight = window.innerHeight;
+                const documentHeight = Math.max(
+                    document.body.scrollHeight, document.body.offsetHeight,
+                    document.documentElement.clientHeight, document.documentElement.scrollHeight, 
+                    document.documentElement.offsetHeight
+                );
+                
+                // Если пользователь прокрутил почти до конца страницы (за 350px до конца)
+                if (scrollTop + windowHeight > documentHeight - 350) {
+                    loadMoreProjects();
+                }
+            }, 100); // Задержка для предотвращения слишком частых вызовов
         });
-    });
+        
+        // Функция для проверки, виден ли индикатор конца контента без прокрутки
+        function checkIfContentFillsPage() {
+            // Если достигнут конец контента или идет загрузка, выходим
+            if (hasReachedEnd || isLoading) {
+                return;
+            }
+            
+            const windowHeight = window.innerHeight;
+            const documentHeight = Math.max(
+                document.body.scrollHeight, document.body.offsetHeight,
+                document.documentElement.clientHeight, document.documentElement.scrollHeight, 
+                document.documentElement.offsetHeight
+            );
+            
+            // Если контент занимает меньше высоты окна плюс запас
+            if (documentHeight < windowHeight + 200) {
+                loadMoreProjects();
+            }
+        }
+        
+        // Проверяем необходимость загрузки при первой загрузке страницы
+        setTimeout(checkIfContentFillsPage, 500);
+        
+        // Сбросить таймер, если пользователь продолжил печатать
+        // Проверяем наличие поля поиска перед добавлением слушателя событий
+        if (searchInput) {
+            searchInput.addEventListener('keydown', function() {
+                clearTimeout(typingTimer);
+            });
+        }
+    }
+});
 </script>
 
 <style>
@@ -332,6 +522,57 @@
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     padding-bottom: 5px;
+}
+
+/* Стили для скелетон-загрузчика */
+.skeleton-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.skeleton-text, .skeleton-badge, .skeleton-icon, .skeleton-button {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    height: 16px;
+    border-radius: 4px;
+}
+
+.skeleton-badge {
+    width: 60px;
+    height: 20px;
+    border-radius: 12px;
+}
+
+.skeleton-icon {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+}
+
+.skeleton-button {
+    height: 36px;
+    border-radius: 4px;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* Анимация для индикатора загрузки */
+.loading-pulse .spinner-grow:nth-child(1) {
+    animation-delay: 0s;
+}
+.loading-pulse .spinner-grow:nth-child(2) {
+    animation-delay: 0.3s;
+}
+.loading-pulse .spinner-grow:nth-child(3) {
+    animation-delay: 0.6s;
 }
 </style>
 @endsection

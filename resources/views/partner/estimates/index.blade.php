@@ -23,7 +23,8 @@
                 <!-- Фильтр по объекту -->
                 <div class="col-md-3 mb-3">
                     <label for="project_id" class="form-label">Объект</label>
-                    <select class="form-select" id="project_id" name="project_id">
+                    <select class="project-search-select" id="project_id" name="project_id" style="width: 100%;" data-placeholder="Выберите объект">
+                        <option value=""></option>
                         <option value="">Все объекты</option>
                         @foreach($projects as $project)
                             <option value="{{ $project->id }}" {{ request('project_id') == $project->id ? 'selected' : '' }}>
@@ -101,54 +102,128 @@
 
 @endsection
 
+<style>
+/* Кастомные стили для Select2 */
+.select2-container--bootstrap-5 .select2-selection {
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    padding: 0.375rem 0.75rem;
+    height: auto;
+}
+
+.select2-container--bootstrap-5 .select2-selection--single {
+    height: 38px;
+}
+
+.select2-container--bootstrap-5 .select2-selection__rendered {
+    line-height: 1.5;
+    padding-left: 0;
+    color: #212529;
+}
+
+.select2-container--bootstrap-5 .select2-selection__arrow {
+    height: 36px;
+}
+
+.select2-container--bootstrap-5.select2-container--focus .select2-selection,
+.select2-container--bootstrap-5.select2-container--open .select2-selection {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Убираем конфликты с Bootstrap */
+.select2-container--bootstrap-5 .select2-dropdown {
+    border-color: #86b7fe;
+    border-radius: 0.25rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.175);
+}
+
+.select2-container--bootstrap-5 .select2-dropdown .select2-search .select2-search__field {
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    padding: 0.375rem 0.75rem;
+}
+
+.select2-container--bootstrap-5 .select2-dropdown .select2-results__option--highlighted[aria-selected] {
+    background-color: #0d6efd;
+    color: #fff;
+}
+</style>
+
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Инициализация всех дропдаунов вручную
-        if (typeof bootstrap !== 'undefined') {
-            const dropdownElementList = document.querySelectorAll('.dropdown-toggle');
-            dropdownElementList.forEach(function(dropdownToggleEl) {
-                new bootstrap.Dropdown(dropdownToggleEl);
-            });
+$(document).ready(function() {
+    // Проверяем, загружен ли Select2
+    if (typeof $.fn.select2 === 'undefined') {
+        console.error('Select2 не загружен. Пробую загрузить динамически...');
+        
+        // Динамическая загрузка Select2 если он не загружен
+        var cssLink = document.createElement('link');
+        cssLink.rel = 'stylesheet';
+        cssLink.href = 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css';
+        document.head.appendChild(cssLink);
+        
+        var cssThemeLink = document.createElement('link');
+        cssThemeLink.rel = 'stylesheet';
+        cssThemeLink.href = 'https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css';
+        document.head.appendChild(cssThemeLink);
+        
+        var scriptTag = document.createElement('script');
+        scriptTag.src = 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js';
+        document.body.appendChild(scriptTag);
+        
+        // Пытаемся инициализировать через 500мс
+        setTimeout(function() {
+            if (typeof $.fn.select2 !== 'undefined') {
+                console.log('Select2 успешно загружен динамически');
+                initializeSelect2();
+            } else {
+                console.error('Не удалось динамически загрузить Select2');
+            }
+        }, 500);
+        return;
+    }
+    
+    // Вызов функции инициализации
+    initializeSelect2();
+});
+
+// Функция для инициализации Select2
+function initializeSelect2() {
+    $('.project-search-select').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Выберите или найдите объект...',
+        allowClear: true,
+        width: '100%',
+        language: {
+            noResults: function() {
+                return "Ничего не найдено";
+            },
+            searching: function() {
+                return "Поиск...";
+            }
+        },
+        // Добавим возможность поиска локально по уже загруженным опциям
+        matcher: function(params, data) {
+            // Если нет поискового запроса, вернуть все данные
+            if ($.trim(params.term) === '') {
+                return data;
+            }
+
+            // Если нет значения, вернуть false
+            if (typeof data.text === 'undefined') {
+                return null;
+            }
+
+            // Поиск по тексту опции без учета регистра
+            if (data.text.toLowerCase().indexOf(params.term.toLowerCase()) > -1) {
+                return data;
+            }
+
+            // Если ничего не нашлось
+            return null;
         }
-        
-        // Обработчик для кнопок удаления внутри дропдаунов
-        const deleteForms = document.querySelectorAll('.delete-form');
-        deleteForms.forEach(form => {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const estimateName = this.getAttribute('data-name');
-                
-                if (confirm(`Вы действительно хотите удалить смету "${estimateName}"?`)) {
-                    this.submit();
-                }
-            });
-        });
-        
-        // Обеспечиваем корректную работу кнопок внутри дропдауна
-        document.querySelectorAll('.dropdown-item').forEach(item => {
-            item.addEventListener('click', function(e) {
-                if (!this.classList.contains('delete-btn')) {
-                    // Для всех кнопок кроме удаления, перейти по ссылке
-                    if (this.tagName === 'A' && this.href) {
-                        window.location.href = this.href;
-                    }
-                    // В противном случае событие будет обработано формой или другим обработчиком
-                }
-            });
-        });
-        
-        // Фиксируем позиционирование дропдауна, чтобы предотвратить проблемы с кликами
-        document.querySelectorAll('.dropdown').forEach(dropdown => {
-            dropdown.addEventListener('show.bs.dropdown', function() {
-                const dropdownMenu = this.querySelector('.dropdown-menu');
-                if (dropdownMenu) {
-                    dropdownMenu.style.position = 'absolute';
-                    dropdownMenu.style.inset = 'auto auto auto auto';
-                    dropdownMenu.style.transform = 'translate(-80%, 0)';
-                }
-            });
-        });
     });
+}
 </script>
 @endpush

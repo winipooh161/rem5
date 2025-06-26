@@ -6,13 +6,22 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectFile;
 use App\Models\User;
+use App\Services\SmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class ProjectController extends Controller
 {
+    protected $smsService;
+
+    public function __construct(SmsService $smsService)
+    {
+        $this->smsService = $smsService;
+    }
+
     /**
      * Отображает список объектов партнера
      */
@@ -21,7 +30,12 @@ class ProjectController extends Controller
         $user = Auth::user();
         
         // Базовый запрос
-        $query = Project::where('partner_id', $user->id);
+        $query = Project::query();
+        
+        // Если пользователь не админ, то фильтруем только его проекты
+        if ($user->role !== 'admin') {
+            $query->where('partner_id', $user->id);
+        }
         
         // Фильтрация по статусу
         if ($request->filled('status')) {
@@ -39,6 +53,16 @@ class ProjectController extends Controller
             });
         }
         
+        // Фильтрация по типу работ
+        if ($request->filled('work_type')) {
+            $query->where('work_type', $request->work_type);
+        }
+        
+        // Фильтрация по партнеру (только для администратора)
+        if ($user->role === 'admin' && $request->filled('partner_id')) {
+            $query->where('partner_id', $request->partner_id);
+        }
+        
         // Сортировка
         $sort = $request->get('sort', 'created_at');
         $direction = $request->get('direction', 'desc');
@@ -46,14 +70,33 @@ class ProjectController extends Controller
         $query->orderBy($sort, $direction);
         
         // Получаем список проектов с пагинацией
-        $projects = $query->paginate(10);
+        // Для AJAX-запросов используем меньшее количество элементов на страницу для более плавной загрузки
+        $perPage = $request->ajax() || $request->has('ajax') ? 5 : 9;
+        $projects = $query->paginate($perPage);
         
-        // Для AJAX запросов возвращаем только HTML
-        if ($request->ajax()) {
-            return view('partner.projects.partials.projects-list', compact('projects'))->render();
+        // Собираем примененные фильтры
+        $filters = [
+            'search' => $request->search,
+            'status' => $request->status,
+            'work_type' => $request->work_type,
+            'partner_id' => $request->partner_id,
+        ];
+        
+        // Для AJAX запросов возвращаем только проекты
+        if ($request->ajax() || $request->has('ajax')) {
+            $view = view('partner.projects.partials.projects-cards', compact('projects', 'filters'))->render();
+            
+            return response()->json([
+                'html' => $view,
+                'lastPage' => $projects->lastPage(),
+                'currentPage' => $projects->currentPage(),
+                'hasMorePages' => $projects->hasMorePages(),
+                'total' => $projects->total(),
+                'perPage' => $projects->perPage()
+            ]);
         }
         
-        return view('partner.projects.index', compact('projects'));
+        return view('partner.projects.index', compact('projects', 'filters'));
     }
 
     /**
@@ -182,6 +225,16 @@ class ProjectController extends Controller
         
         $project->description = $request->description;
         $project->save();
+        
+        // Отправляем SMS уведомление клиенту
+        $partner = Auth::user();
+        $this->smsService->sendProjectNotificationToClient(
+            $project->phone,
+            $project->client_name,
+            $project->address,
+            $project->work_type,
+            $partner->name ?? 'Партнер'
+        );
         
         return redirect()->route('partner.projects.show', $project)
                          ->with('success', 'Объект успешно создан.');
@@ -444,5 +497,49 @@ class ProjectController extends Controller
         $file->delete();
         
         return response()->json(['success' => true]);
+    }
+    
+    /**
+     * API метод для поиска проектов
+     */
+    public function search(Request $request)
+    {
+        $user = Auth::user();
+        $query = $request->input('q');
+        
+        // Базовый запрос
+        $projectsQuery = Project::query();
+        
+        // Если пользователь не админ, то фильтруем только его проекты
+        if ($user->role !== 'admin') {
+            $projectsQuery->where('partner_id', $user->id);
+        }
+        
+        // Фильтрация по поиску
+        if (!empty($query)) {
+            $projectsQuery->where(function($q) use ($query) {
+                $q->where('client_name', 'like', "%{$query}%")
+                  ->orWhere('address', 'like', "%{$query}%")
+                  ->orWhere('phone', 'like', "%{$query}%");
+            });
+        }
+        
+        $projects = $projectsQuery->select('id', 'client_name', 'address')
+            ->orderBy('created_at', 'desc')
+            ->limit(15)
+            ->get();
+        
+        $results = [];
+        
+        foreach ($projects as $project) {
+            $results[] = [
+                'id' => $project->id,
+                'text' => "{$project->client_name} ({$project->address})"
+            ];
+        }
+        
+        return response()->json([
+            'results' => $results
+        ]);
     }
 }

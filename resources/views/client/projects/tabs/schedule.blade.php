@@ -1,6 +1,10 @@
-<div class="project-schedule mb-4">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
+<div class="project-schedule mb-4">    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
         <h5 class="mb-2 mb-md-0">План-график</h5>
+        <div>
+            <a href="{{ route('client.projects.show', ['project' => $project->id, 'tab' => 'calendar']) }}" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-calendar-alt me-1"></i>Календарный вид графика
+            </a>
+        </div>
     </div>
     
     <!-- Блок с информацией о продолжительности проекта -->

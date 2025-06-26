@@ -588,30 +588,7 @@ class ProjectCheckController extends Controller
                         'image' => asset('images/Shumanet/6.webp'),
                         'caption' => 'Проверка крепления трасс через изоляцию'
                     ],
-                    [
-                        'id' => 406,
-                        'checked' => false,
-                        'image' => asset('images/Shumanet/7.webp'),
-                        'caption' => 'Проверка доставки материалов на объект'
-                    ],
-                    [
-                        'id' => 407,
-                        'checked' => false,
-                        'image' => asset('images/Shumanet/8.webp'),
-                        'caption' => 'Проверка чистоты перекрытия'
-                    ],
-                    [
-                        'id' => 408,
-                        'checked' => false,
-                        'image' => asset('images/Shumanet/9.webp'),
-                        'caption' => 'Проверка монтажа шуманет в каждом помещении'
-                    ],
-                    [
-                        'id' => 409,
-                        'checked' => false,
-                        'image' => asset('images/Shumanet/10.webp'),
-                        'caption' => 'Проверка качественной спайки листов шуманет'
-                    ],
+                  
                 ],
                 'checkboxes' => [
                     ['id' => 410, 'checked' => false, 'text' => 'Уборка поверхности пола'],

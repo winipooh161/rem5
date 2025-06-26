@@ -49,6 +49,30 @@ class Handler extends ExceptionHandler
             //
         });
         
+        // Обработка ошибок аутентификации
+        $this->renderable(function (AuthenticationException $e, $request) {
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json(['message' => 'Требуется авторизация'], 401);
+            }
+            
+            return redirect()->guest(route('login'))->with('error', 'Срок сессии истек. Пожалуйста, авторизуйтесь снова.');
+        });
+        
+        // Обработка ошибок CSRF токена
+        $this->renderable(function (\Illuminate\Session\TokenMismatchException $e, $request) {
+            Log::warning('CSRF token mismatch', [
+                'ip' => $request->ip(),
+                'uri' => $request->fullUrl(),
+                'user_id' => auth()->id() ?? 'guest'
+            ]);
+            
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json(['message' => 'CSRF token expired. Please refresh the page.'], 419);
+            }
+            
+            return redirect()->back()->with('error', 'Ваша сессия истекла. Пожалуйста, обновите страницу и повторите действие.');
+        });
+        
         // Обработка исключений для API запросов
         $this->renderable(function (Throwable $e, $request) {
             if ($request->is('api/*') || $request->wantsJson()) {
@@ -79,7 +103,7 @@ class Handler extends ExceptionHandler
                 }
                 
                 // Общие ошибки
-                $statusCode = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500;
+                $statusCode = 500; // По умолчанию 500 для внутренней ошибки сервера
                 
                 return response()->json([
                     'success' => false,

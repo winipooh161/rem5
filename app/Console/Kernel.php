@@ -15,6 +15,8 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         // ...existing commands...
         \App\Console\Commands\GenerateEstimateTemplates::class,
+        \App\Console\Commands\CleanOldSessions::class,
+        \App\Console\Commands\TestSmsNotifications::class,
     ];
 
     /**
@@ -23,6 +25,9 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         // $schedule->command('inspire')->hourly();
+        
+        // Очистка устаревших сессий ежедневно в 2 часа ночи
+        $schedule->command('session:clean')->dailyAt('02:00');
     }
 
     /**

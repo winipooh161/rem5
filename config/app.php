@@ -195,6 +195,8 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         App\Providers\EstimateServiceProvider::class,
+        App\Providers\SmsServiceProvider::class,
+        App\Providers\SessionConfigServiceProvider::class,
 
     ],
 

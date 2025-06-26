@@ -17,6 +17,7 @@ use Carbon\Carbon;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class EstimateExcelController extends Controller
 {
@@ -863,6 +864,135 @@ class EstimateExcelController extends Controller
             
             return back()->with('error', 'Произошла ошибка при экспорте: ' . $e->getMessage());
         }
+    }    /**
+     * Экспортирует смету в файл PDF
+     */
+    public function exportPdf(Estimate $estimate)
+    {
+        $this->authorize('view', $estimate);
+        
+        // Проверяем, существует ли файл
+        if (!$estimate->file_path || !Storage::disk('public')->exists($estimate->file_path)) {
+            // Если файла нет, создаем его
+            $this->createInitialExcelFile($estimate);
+        }
+        
+        // В любом случае применяем улучшенное форматирование и исправляем формулы
+        $this->enhanceExistingFileFormatting($estimate);
+        
+        try {
+            // Получаем путь к файлу Excel
+            $excelFilePath = storage_path('app/public/' . $estimate->file_path);
+            
+            // Загружаем данные из Excel
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($excelFilePath);
+            $worksheet = $spreadsheet->getActiveSheet();
+            $data = $worksheet->toArray(null, true, true, true);
+              // Задаем стили для PDF
+            $styles = '
+                <style>
+                    body { font-family: "sans-serif", "DejaVu Sans", Arial, sans-serif; font-size: 10pt; line-height: 1.3; }
+                    h1 { text-align: center; color: #2F75B5; margin-bottom: 20px; font-size: 16pt; }
+                    .estimate-info { margin-bottom: 15px; }
+                    table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+                    table, th, td { border: 1px solid #ddd; }
+                    th { background-color: #2F75B5; color: white; padding: 10px; text-align: center; }
+                    td { padding: 8px; text-align: left; }
+                    tr:nth-child(even) { background-color: #f9f9f9; }
+                    .text-right { text-align: right; }
+                    .text-center { text-align: center; }
+                    .bold { font-weight: bold; }
+                    .section-header { background-color: #366092; color: white; font-weight: bold; }
+                    .total-row { background-color: #BDD7EE; font-weight: bold; }
+                </style>
+            ';
+              // Формируем HTML для PDF с UTF-8 кодировкой
+            $html = '<!DOCTYPE html>
+            <html>
+            <head>
+                <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+                <link href="' . public_path('css/pdf-fonts.css') . '" rel="stylesheet" type="text/css" />
+                ' . $styles . '
+                <title>' . $estimate->name . '</title>
+            </head>
+            <body>
+                <h1>' . $estimate->name . '</h1>
+                <div class="estimate-info">
+                    <p><strong>Дата:</strong> ' . now()->format('d.m.Y') . '</p>
+                    ' . ($estimate->project ? '<p><strong>Объект:</strong> ' . $estimate->project->address . '</p>' : '') . '
+                </div>
+                <table>';
+            
+            // Определим первую строку как заголовок
+            $isFirstRow = true;
+            
+            foreach ($data as $rowIndex => $row) {
+                // Пропускаем пустые строки
+                $isEmpty = true;
+                foreach ($row as $cell) {
+                    if (!empty($cell)) {
+                        $isEmpty = false;
+                        break;
+                    }
+                }
+                if ($isEmpty) continue;
+                
+                // Определяем стиль строки
+                $rowClass = '';
+                $cellB = isset($row['B']) ? $row['B'] : '';
+                
+                if (is_string($cellB)) {
+                    if (mb_stripos($cellB, 'ИТОГО') !== false) {
+                        $rowClass = 'class="total-row"';
+                    } elseif (mb_stripos($cellB, 'раздел') !== false || mb_stripos($cellB, '.') === 0 || preg_match('/^\d+\./', $cellB)) {
+                        $rowClass = 'class="section-header"';
+                    }
+                }
+                
+                if ($isFirstRow) {
+                    $html .= '<tr>';
+                    foreach ($row as $cell) {
+                        $html .= '<th>' . htmlspecialchars($cell, ENT_QUOTES, 'UTF-8') . '</th>';
+                    }
+                    $html .= '</tr>';
+                    $isFirstRow = false;
+                } else {
+                    $html .= '<tr ' . $rowClass . '>';
+                    foreach ($row as $colIndex => $cell) {
+                        // Выравнивание для числовых колонок вправо
+                        $class = '';
+                        if (in_array($colIndex, ['D', 'E', 'F', 'G', 'H', 'I', 'J']) && is_numeric($cell)) {
+                            $class = ' class="text-right"';
+                        }
+                        
+                        $html .= '<td' . $class . '>' . htmlspecialchars($cell, ENT_QUOTES, 'UTF-8') . '</td>';
+                    }
+                    $html .= '</tr>';
+                }
+            }
+            
+            $html .= '</table></body></html>';
+              // Создаем PDF с помощью Dompdf с указанием UTF-8 кодировки
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html);
+            $pdf->setPaper('a4', 'landscape');
+            
+            // Настраиваем параметры для корректного отображения русских символов
+            $pdf->getDomPDF()->set_option('defaultFont', 'sans-serif');
+            $pdf->getDomPDF()->set_option('isRemoteEnabled', true);
+            $pdf->getDomPDF()->set_option('isHtml5ParserEnabled', true);
+            $pdf->getDomPDF()->set_option('isFontSubsettingEnabled', true);
+            $pdf->getDomPDF()->set_option('unicode_enabled', true);
+            
+            // Формируем имя файла для загрузки
+            $fileName = $estimate->file_name ?? ('Смета_' . $estimate->id . '.pdf');
+            $fileName = pathinfo($fileName, PATHINFO_FILENAME) . '.pdf';
+            
+            return $pdf->download($fileName);
+            
+        } catch (\Exception $e) {
+            Log::error('Ошибка при экспорте сметы в PDF: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Не удалось экспортировать смету в PDF: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -957,8 +1087,7 @@ class EstimateExcelController extends Controller
                             'fill' => [
                                 'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
                                 'color' => ['rgb' => 'BDD7EE'],
-                            ],
-                            'alignment' => [
+                            ],                            'alignment' => [
                                 'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT,
                             ],
                             'borders' => [

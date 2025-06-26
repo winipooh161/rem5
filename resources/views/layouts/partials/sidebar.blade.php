@@ -1,9 +1,6 @@
 <nav id="sidebar" class="sidebar">
     <div class="sidebar-header">
         <img src="{{asset('/img/logo.svg')}}" alt="" class="" width="40" height="40" style="object-fit: cover;">
-        <button type="button" id="sidebarCollapse" class="btn btn-light d-block d-md-none">
-            <i class="fas fa-times"></i>
-        </button>
     </div>
 
     <div class="sidebar-profile py-3 px-4 mb-3">
@@ -80,6 +77,13 @@
             </li>
             <li class="{{ Request::is('estimator/estimates*') ? 'active' : '' }}">
                 <a href="{{ route('estimator.estimates.index') }}"><i class="fas fa-file-invoice me-2"></i>Все сметы</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('estimator/calculator*') ? 'active' : '' }}" 
+                   href="{{ route('estimator.calculator.index') }}">
+                    <i class="fas fa-calculator me-2"></i>
+                    Калькулятор 
+                </a>
             </li>
             @endif
 

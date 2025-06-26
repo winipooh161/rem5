@@ -23,12 +23,12 @@ Route::middleware(['auth', 'partner'])->prefix('partner')->name('partner.')->gro
     
     Route::delete('project-photos/{projectPhoto}', [ProjectPhotoController::class, 'destroy'])
         ->name('project-photos.destroy');
-    
-    // Маршруты для работы с графиком проектов
+      // Маршруты для работы с графиком проектов
     Route::prefix('projects/{project}/schedule')->group(function () {
         Route::get('/file', [ProjectScheduleController::class, 'getFile'])->name('projects.schedule-file');
         Route::post('/file', [ProjectScheduleController::class, 'saveFile'])->name('projects.schedule-file.store');
         Route::post('/template', [ProjectScheduleController::class, 'createTemplate'])->name('projects.schedule-template');
+        Route::post('/generate-data', [ProjectScheduleController::class, 'generateDataJson'])->name('projects.schedule-generate-data');
     });
 });
 

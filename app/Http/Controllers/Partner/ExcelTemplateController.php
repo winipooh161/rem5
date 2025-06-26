@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Log;
 
 class ExcelTemplateController extends Controller
 {
@@ -121,21 +122,35 @@ class ExcelTemplateController extends Controller
      */
     public function getSectionsData()
     {
-        $estimateService = app(EstimateTemplateService::class);
-        $sections = $estimateService->getWorkSections();
-        
-        // Формируем массив работ из всех разделов
-        $allWorks = [];
-        foreach ($sections as $section) {
-            foreach ($section['items'] as $item) {
-                $allWorks[] = $item;
+        try {
+            Log::info('getSectionsData method called');
+            
+            $estimateService = app(EstimateTemplateService::class);
+            $sections = $estimateService->getWorkSections();
+            
+            Log::info('Sections loaded', ['count' => count($sections)]);
+            
+            // Формируем массив работ из всех разделов
+            $allWorks = [];
+            foreach ($sections as $section) {
+                foreach ($section['items'] as $item) {
+                    $allWorks[] = $item;
+                }
             }
+            
+            Log::info('All works processed', ['count' => count($allWorks)]);
+            
+            return response()->json([
+                'success' => true,
+                'sections' => $sections,
+                'works' => $allWorks
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error in getSectionsData', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'error' => 'Произошла ошибка при загрузке данных разделов'
+            ], 500);
         }
-        
-        return response()->json([
-            'success' => true,
-            'sections' => $sections,
-            'works' => $allWorks
-        ]);
     }
 }

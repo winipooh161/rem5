@@ -486,6 +486,14 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
+                                
+                                <div class="mb-3">
+                                    <label for="work_end_date" class="form-label">Приблизительное окончание ремонта</label>
+                                    <input type="date" class="form-control @error('work_end_date') is-invalid @enderror" id="work_end_date" name="work_end_date" value="{{ old('work_end_date') }}">
+                                    @error('work_end_date')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
 
                                 <div class="mb-3">
                                     <label for="contract_number" class="form-label">Номер договора</label>

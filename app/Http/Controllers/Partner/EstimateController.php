@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Partner;
 use App\Http\Controllers\Controller;
 use App\Models\Estimate;
 use App\Models\Project;
+use App\Models\User;
+use App\Services\SmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -12,13 +14,15 @@ use Illuminate\Support\Facades\Storage;
 class EstimateController extends Controller
 {
     protected $excelController;
+    protected $smsService;
     
     /**
      * Конструктор с внедрением зависимостей
      */
-    public function __construct(EstimateExcelController $excelController)
+    public function __construct(EstimateExcelController $excelController, SmsService $smsService)
     {
         $this->excelController = $excelController;
+        $this->smsService = $smsService;
     }
     
     /**
@@ -152,8 +156,30 @@ class EstimateController extends Controller
         $estimate->status = $validatedData['status'];
         $estimate->description = $validatedData['notes'] ?? null;
         $estimate->user_id = Auth::id();
-        $estimate->total_amount = 0; // Изначально сумма 0
+        // Не устанавливаем total_amount, пусть база данных использует значение по умолчанию
         $estimate->save();
+        
+        // Если смету создает сметчик и у него есть партнер, отправляем SMS партнеру
+        $user = Auth::user();
+        if ($user->role === 'estimator' && $user->partner_id) {
+            $partner = User::find($user->partner_id);
+            if ($partner && $partner->phone) {
+                $projectInfo = '';
+                if ($validatedData['project_id']) {
+                    $project = Project::find($validatedData['project_id']);
+                    if ($project) {
+                        $projectInfo = $project->client_name . ' (' . $project->address . ')';
+                    }
+                }
+                
+                $this->smsService->sendEstimateNotificationToPartner(
+                    $partner->phone,
+                    $user->name ?? 'Сметчик',
+                    $validatedData['name'],
+                    $projectInfo
+                );
+            }
+        }
         
         // Создаем шаблон Excel для сметы через специализированный контроллер
         $this->excelController->createInitialExcelFile($estimate);

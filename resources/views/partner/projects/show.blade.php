@@ -59,6 +59,12 @@
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="camera-tab" data-bs-toggle="tab" data-bs-target="#camera" type="button" role="tab" aria-controls="camera" aria-selected="false">
+                        <i class="fas fa-video d-block d-md-none"></i>
+                        <span class="d-none d-md-block">Камера</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
                     <button class="nav-link" id="photos-tab" data-bs-toggle="tab" data-bs-target="#photos" type="button" role="tab" aria-controls="photos" aria-selected="false">
                         <i class="fas fa-camera d-block d-md-none"></i>
                         <span class="d-none d-md-block">Фото</span>
@@ -117,6 +123,10 @@
                 
                 <div class="tab-pane fade" id="schedule" role="tabpanel" aria-labelledby="schedule-tab">
                     @include('partner.projects.tabs.schedule')
+                </div>
+                
+                <div class="tab-pane fade" id="camera" role="tabpanel" aria-labelledby="camera-tab">
+                    @include('partner.projects.tabs.camera')
                 </div>
                 
                 <div class="tab-pane fade" id="photos" role="tabpanel" aria-labelledby="photos-tab">

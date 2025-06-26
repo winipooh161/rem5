@@ -28,4 +28,11 @@ Route::middleware(['auth', 'estimator'])->prefix('estimator')->name('estimator.'
     // Маршруты для управления элементами смет
     Route::post('estimates/{estimate}/items/add', [EstimateItemController::class, 'addRow'])->name('estimates.items.add');
     Route::put('estimates/{estimate}/items/table', [EstimateItemController::class, 'updateTable'])->name('estimates.items.table');
+    
+    // Маршруты для калькулятора материалов
+    Route::get('/calculator', [\App\Http\Controllers\Partner\MaterialCalculatorController::class, 'index'])->name('calculator.index');
+    Route::post('/calculator/calculate', [\App\Http\Controllers\Partner\MaterialCalculatorController::class, 'calculate'])->name('calculator.calculate');
+    Route::post('/calculator/export-pdf', [\App\Http\Controllers\Partner\MaterialCalculatorController::class, 'exportPdf'])->name('calculator.export-pdf');
+    Route::post('/calculator/save-prices', [\App\Http\Controllers\Partner\MaterialCalculatorController::class, 'savePrices'])->name('calculator.save-prices');
+    Route::get('/calculator/get-prices', [\App\Http\Controllers\Partner\MaterialCalculatorController::class, 'getPrices'])->name('calculator.get-prices');
 });

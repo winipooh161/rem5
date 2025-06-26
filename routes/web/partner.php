@@ -17,6 +17,9 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'partner'])->prefix('partner')->name('partner.')->group(function () {
     Route::get('/', [PartnerController::class, 'index'])->name('dashboard');
     
+    // Профиль партнера
+    Route::get('/profile', [PartnerController::class, 'profile'])->name('profile');
+    
     // Маршруты для управления объектами
     Route::resource('projects', ProjectController::class);
     
@@ -32,10 +35,11 @@ Route::middleware(['auth', 'partner'])->prefix('partner')->name('partner.')->gro
     
     // Маршруты для управления сотрудниками
     Route::resource('employees', EmployeeController::class)->except(['create', 'edit']);
-    
-    // Маршруты для Excel-файлов смет
+      // Маршруты для Excel-файлов смет
     Route::get('estimates/{estimate}/export', [EstimateExcelController::class, 'export'])
         ->name('estimates.export');
+    Route::get('estimates/{estimate}/export-pdf', [EstimateExcelController::class, 'exportPdf'])
+        ->name('estimates.exportPdf');
     Route::get('estimates/{estimate}/data', [EstimateExcelController::class, 'getData'])->name('estimates.getData');
     Route::post('estimates/{estimate}/saveExcel', [EstimateExcelController::class, 'saveExcelData'])->name('estimates.saveExcel');
     Route::post('estimates/{estimate}/upload', [EstimateExcelController::class, 'upload'])->name('estimates.upload');

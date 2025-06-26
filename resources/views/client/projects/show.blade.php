@@ -40,10 +40,19 @@
                         <button class="nav-link {{ request('tab') == 'finance' ? 'active' : ''}}" id="finance-tab" data-bs-toggle="tab" data-bs-target="#finance" type="button" role="tab" aria-controls="finance" aria-selected="{{ request('tab') == 'finance' ? 'true' : 'false'}}">
                             <i class="fas fa-money-bill-wave me-1"></i>Финансы
                         </button>
+                    </li>                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {{ request('tab') == 'schedule' ? 'active' : ''}}" id="schedule-tab" data-bs-toggle="tab" data-bs-target="#schedule" type="button" role="tab" aria-controls="schedule" aria-selected="{{ request('tab') == 'schedule' ? 'true' : 'false'}}">
+                            <i class="fas fa-tasks me-1"></i>План-график
+                        </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link {{ request('tab') == 'schedule' ? 'active' : ''}}" id="schedule-tab" data-bs-toggle="tab" data-bs-target="#schedule" type="button" role="tab" aria-controls="schedule" aria-selected="{{ request('tab') == 'schedule' ? 'true' : 'false'}}">
-                            <i class="fas fa-calendar-alt me-1"></i>План-график
+                        <button class="nav-link {{ request('tab') == 'calendar' ? 'active' : ''}}" id="calendar-tab" data-bs-toggle="tab" data-bs-target="#calendar" type="button" role="tab" aria-controls="calendar" aria-selected="{{ request('tab') == 'calendar' ? 'true' : 'false'}}">
+                            <i class="fas fa-calendar-alt me-1"></i>Календарь
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {{ request('tab') == 'camera' ? 'active' : ''}}" id="camera-tab" data-bs-toggle="tab" data-bs-target="#camera" type="button" role="tab" aria-controls="camera" aria-selected="{{ request('tab') == 'camera' ? 'true' : 'false'}}">
+                            <i class="fas fa-video me-1"></i>Камера
                         </button>
                     </li>                    <li class="nav-item" role="presentation">
                         <button class="nav-link {{ request('tab') == 'photos' ? 'active' : ''}}" id="photos-tab" data-bs-toggle="tab" data-bs-target="#photos" type="button" role="tab" aria-controls="photos" aria-selected="{{ request('tab') == 'photos' ? 'true' : 'false'}}">
@@ -91,10 +100,15 @@
                 </div>
                 <div class="tab-pane fade {{ request('tab') == 'finance' ? 'show active' : ''}}" id="finance" role="tabpanel" aria-labelledby="finance-tab">
                     @include('client.projects.tabs.finance')
-                </div>
-                <div class="tab-pane fade {{ request('tab') == 'schedule' ? 'show active' : ''}}" id="schedule" role="tabpanel" aria-labelledby="schedule-tab">
+                </div>                <div class="tab-pane fade {{ request('tab') == 'schedule' ? 'show active' : ''}}" id="schedule" role="tabpanel" aria-labelledby="schedule-tab">
                     @include('client.projects.tabs.schedule')
-                </div>                <div class="tab-pane fade {{ request('tab') == 'photos' ? 'show active' : ''}}" id="photos" role="tabpanel" aria-labelledby="photos-tab">
+                </div>
+                <div class="tab-pane fade {{ request('tab') == 'calendar' ? 'show active' : ''}}" id="calendar" role="tabpanel" aria-labelledby="calendar-tab">
+                    @include('client.projects.tabs.calendar')
+                </div>
+                <div class="tab-pane fade {{ request('tab') == 'camera' ? 'show active' : ''}}" id="camera" role="tabpanel" aria-labelledby="camera-tab">
+                    @include('client.projects.tabs.camera')
+                </div>                <div class="tab-pane fade{{ request('tab') == 'photos' ? 'show active' : ''}}" id="photos" role="tabpanel" aria-labelledby="photos-tab">
                     @include('client.projects.tabs.photos')
                 </div>
                 <div class="tab-pane fade {{ request('tab') == 'check' ? 'show active' : ''}}" id="check" role="tabpanel" aria-labelledby="check-tab">
@@ -197,6 +211,32 @@ document.addEventListener('DOMContentLoaded', function() {
     /* Мобильные версии таблиц */
     .table-card-view td {
         white-space: normal;
+    }
+    
+    /* Стили для камеры */
+    .camera-container {
+        padding: 1rem 0;
+    }
+    
+    .camera-view-container {
+        background: #f5f5f5;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    }
+    
+    @media (max-width: 768px) {
+        .camera-view-container iframe {
+            height: 240px;
+        }
+        
+        .iv-embed {
+            width: 100% !important;
+        }
+        
+        .camera-info {
+            font-size: 0.9rem;
+        }
     }
 }
 </style>

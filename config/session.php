@@ -31,7 +31,7 @@ return [
     |
     */
 
-    'lifetime' => env('SESSION_LIFETIME', 120),
+    'lifetime' => env('SESSION_LIFETIME', 4320), // 3 дня (72 часа * 60 минут)
 
     'expire_on_close' => false,
 

@@ -19,13 +19,22 @@ Route::get('/', function () {
     return view('home');
 });
 
-Auth::routes();
+Auth::routes([
+    'login' => false, // Отключаем стандартный маршрут входа
+]);
+
+// Маршруты для SMS авторизации
+Route::get('/login', [\App\Http\Controllers\Auth\SmsAuthController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [\App\Http\Controllers\Auth\SmsAuthController::class, 'login']);
+Route::post('/login/send-code', [\App\Http\Controllers\Auth\SmsAuthController::class, 'sendCode'])->name('login.send-code');
+Route::post('/login/verify-code', [\App\Http\Controllers\Auth\SmsAuthController::class, 'verifyCode'])->name('login.verify-code');
 
 Route::get('/home', [HomeController::class, 'index'])->name('home');
 
 // Подключение разделенных маршрутов
 require __DIR__ . '/web/admin.php';
 require __DIR__ . '/web/partner.php';
+require __DIR__ . '/web/partner_extensions.php';
 require __DIR__ . '/web/partner_project_features.php';
 require __DIR__ . '/web/partner_tools.php';
 require __DIR__ . '/web/partner_finance.php';

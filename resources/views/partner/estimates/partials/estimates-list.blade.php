@@ -89,10 +89,14 @@
                                 <a class="dropdown-item" href="{{ route('partner.estimates.edit', $estimate->id) }}">
                                     <i class="fas fa-edit me-2"></i>Редактировать
                                 </a>
+                            </li>                            <li>
+                                <a class="dropdown-item" href="{{ route('partner.estimates.export', $estimate->id) }}">
+                                    <i class="fas fa-file-excel me-2"></i>Скачать Excel
+                                </a>
                             </li>
                             <li>
-                                <a class="dropdown-item" href="{{ route('partner.estimates.export', $estimate->id) }}">
-                                    <i class="fas fa-download me-2"></i>Скачать Excel
+                                <a class="dropdown-item" href="{{ route('partner.estimates.exportPdf', $estimate->id) }}">
+                                    <i class="fas fa-file-pdf me-2"></i>Скачать PDF
                                 </a>
                             </li>
                             <li>
