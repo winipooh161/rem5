@@ -1,13 +1,27 @@
 <!doctype html>
+@php
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Log;
+@endphp
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
+    @if(auth()->check())
+    <meta name="user-role" content="{{ auth()->user()->role }}" data-user-role="{{ auth()->user()->role }}">
+    @endif
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Laravel') }}</title>
+    <title>
+        @if(isset($pageTitle))
+            {{ $pageTitle }} - {{ config('app.name', 'Laravel') }}
+        @else
+            {{ config('app.name', 'Laravel') }} [Не установлен заголовок страницы]
+        @endif
+    </title>
+
     
     <!-- jQuery должен быть подключен до скриптов, которые его используют -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" 
@@ -44,11 +58,56 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
+    <!-- Дополнительные стили для мобильной адаптации -->
+    <link href="{{ asset('css/mobile-fixes.css') }}?v={{ time() }}" rel="stylesheet">
+    
+    <!-- Стили для административной панели -->
+    <link href="{{ asset('css/admin-dashboard.css') }}?v={{ time() }}" rel="stylesheet">
+    
+    <!-- Исправления для выпадающих меню (используем версионирование для кеширования) -->
+    <link href="{{ asset('css/dropdown-fixes.css') }}?v={{ time() }}" rel="stylesheet">
+    
+    <!-- Новая тема сайта -->
+    <link href="{{ asset('css/theme.css') }}?v={{ time() }}" rel="stylesheet">
+    
+    <!-- Анимации и эффекты -->
+    <link href="{{ asset('css/animations.css') }}?v={{ time() }}" rel="stylesheet">
+    
+    <!-- Дополнительные оптимизации для разных устройств -->
+    <link href="{{ asset('css/optimizations.css') }}?v={{ time() }}" rel="stylesheet">
+    
+    <!-- Стили для документов -->
+    <link href="{{ asset('css/documents.css') }}?v={{ time() }}" rel="stylesheet">
+    
+    <!-- Скрипт для улучшения мобильного отображения -->
+    <script src="{{ asset('js/mobile-improvements.js') }}?v={{ time() }}"></script>
+    
+    <!-- Скрипт для интерактивных эффектов темы -->
+    <script src="{{ asset('js/theme-effects.js') }}?v={{ time() }}"></script>
 
+    <!-- Стили для интерактивных туров -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intro.js@7.2.0/minified/introjs.min.css">
+    <link href="{{ asset('css/intro-tour.css') }}?v={{ time() }}" rel="stylesheet">
+    
+    <!-- Библиотека для интерактивных туров -->
+    <script src="https://cdn.jsdelivr.net/npm/intro.js@7.2.0/intro.min.js"></script>
+    
+    <!-- Данные туров и логика работы системы обучения -->
+    <script src="{{ asset('js/tours-data.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/tours-bundle.js') }}?v={{ time() }}"></script>
+    
+    <!-- Исправления для выпадающих меню в сметах -->
+    <script src="{{ asset('js/estimates-dropdowns.js') }}?v={{ time() }}"></script>
+    
+    <!-- Совместимость туров и выпадающих меню -->
+    <script src="{{ asset('js/dropdown-tour-compatibility.js') }}?v={{ time() }}"></script>
+    
     <!-- Scripts -->
-    @vite(['resources/css/app.css', 'resources/js/app.js', ])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body>
+<body data-user-role="{{ auth()->check() ? auth()->user()->role : '' }}">
+    @include('components.help-tour-button')
     <div class="wrapper">
         <!-- Боковая навигационная панель -->
         @include('layouts.partials.sidebar')
@@ -64,6 +123,15 @@
                     <a class="navbar-brand d-none d-md-inline" href="{{ url('/') }}">
                         {{ config('app.name', 'Laravel') }}
                     </a>
+                    
+                    <div class="ms-2 d-none d-lg-inline">
+                        @if(isset($pageTitle))
+                            <span class="text-secondary fw-light">/ {{ $pageTitle }}</span>
+                        @endif
+                        @if(isset($pageSubtitle))
+                            <span class="text-muted small"> - {{ $pageSubtitle }}</span>
+                        @endif
+                    </div>
 
                     <div class="collapse navbar-collapse" id="navbarSupportedContent">
                         <ul class="navbar-nav ms-auto">
@@ -78,17 +146,22 @@
             </nav>
 
             <main class="">
+             
+                
                 @yield('content')
             </main>
         </div>
     </div>
 
 
+    <!-- Исправление для выпадающих меню (добавляем версионирование для обновления кеша) -->
+    <script src="{{ asset('js/dropdown-fix.js') }}?v={{ time() }}"></script>
+    
+    <!-- Новый универсальный скрипт для инициализации всех выпадающих меню -->
+    <script src="{{ asset('js/dropdown-init.js') }}?v={{ time() }}"></script>
+    
     <!-- Обязательно разместить yield для скриптов в конце body -->
     @yield('scripts')
-    
-    <!-- Исправление для выпадающих меню -->
-    <script src="{{ asset('js/dropdown-fix.js') }}"></script>
     
     @stack('scripts')
 </body>

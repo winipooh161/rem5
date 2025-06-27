@@ -11,9 +11,7 @@ Route::prefix('client')->name('client.')->middleware(['auth', 'admin.or.client']
     
     // Маршруты для проектов клиента
     Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
-    Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');    // API для календаря
-    Route::get('/projects/{project}/calendar-view', [\App\Http\Controllers\Client\ProjectCalendarController::class, 'getCalendarView'])
-        ->name('projects.calendar-view'); // Middleware ['auth', 'admin.or.client'] уже определен в группе
+    Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
       // Маршрут для генерации PDF
     Route::post('/projects/generate-pdf', [\App\Http\Controllers\Partner\PdfGeneratorController::class, 'generatePdf'])
         ->name('projects.generate-pdf')
@@ -21,4 +19,7 @@ Route::prefix('client')->name('client.')->middleware(['auth', 'admin.or.client']
     
     // Маршрут для скачивания файлов
     Route::get('/project-files/{file}/download', [ProjectFileController::class, 'download'])->name('project-files.download');
+    
+    // Маршрут для скачивания смет
+    Route::get('/estimates/{estimate}/download', [\App\Http\Controllers\Client\EstimateController::class, 'download'])->name('estimates.download');
 });

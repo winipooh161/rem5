@@ -55,6 +55,144 @@
                                     </div>
                                 </div>
                             </div>
+                            
+                            @if(auth()->user()->role === 'partner' || auth()->user()->role === 'client')
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>{{ __('Настройки обучения') }}</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p>Вы можете сбросить прогресс обучения, чтобы снова увидеть все подсказки.</p>
+                                    
+                                    @php
+                                        $completedToursCount = $user->completedTours()->count();
+                                    @endphp
+                                    
+                                    <div class="mb-3">
+                                        <div class="alert alert-secondary">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            <span>
+                                                @if($completedToursCount > 0)
+                                                    Вы просмотрели {{ $completedToursCount }} {{ trans_choice('тур|тура|туров', $completedToursCount) }} обучения.
+                                                @else
+                                                    Вы еще не просмотрели ни одного тура обучения.
+                                                @endif
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <button id="resetTours" class="btn btn-info">
+                                        <i class="fas fa-redo me-2"></i>Сбросить прогресс обучения
+                                    </button>
+                                </div>
+                            </div>
+                            @endif
+
+                            @if(auth()->user()->role === 'partner' || auth()->user()->role === 'admin')
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h5>{{ __('Банковские реквизиты') }}</h5>
+                                </div>
+                                <div class="card-body">
+                                    @if($user->bank || $user->bik || $user->checking_account || $user->correspondent_account || $user->recipient_bank || $user->inn || $user->kpp)
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                @if($user->bank)
+                                                <div class="mb-3">
+                                                    <label class="text-muted">{{ __('Банк') }}:</label>
+                                                    <p class="lead">{{ $user->bank }}</p>
+                                                </div>
+                                                @endif
+                                                
+                                                @if($user->bik)
+                                                <div class="mb-3">
+                                                    <label class="text-muted">{{ __('БИК') }}:</label>
+                                                    <p class="lead">{{ $user->bik }}</p>
+                                                </div>
+                                                @endif
+                                                
+                                                @if($user->checking_account)
+                                                <div class="mb-3">
+                                                    <label class="text-muted">{{ __('Р/с') }}:</label>
+                                                    <p class="lead">{{ $user->checking_account }}</p>
+                                                </div>
+                                                @endif
+                                                
+                                                @if($user->correspondent_account)
+                                                <div class="mb-3">
+                                                    <label class="text-muted">{{ __('К/с') }}:</label>
+                                                    <p class="lead">{{ $user->correspondent_account }}</p>
+                                                </div>
+                                                @endif
+                                            </div>
+                                            <div class="col-md-6">
+                                                @if($user->recipient_bank)
+                                                <div class="mb-3">
+                                                    <label class="text-muted">{{ __('Банк получателя') }}:</label>
+                                                    <p class="lead">{{ $user->recipient_bank }}</p>
+                                                </div>
+                                                @endif
+                                                
+                                                @if($user->inn)
+                                                <div class="mb-3">
+                                                    <label class="text-muted">{{ __('ИНН') }}:</label>
+                                                    <p class="lead">{{ $user->inn }}</p>
+                                                </div>
+                                                @endif
+                                                
+                                                @if($user->kpp)
+                                                <div class="mb-3">
+                                                    <label class="text-muted">{{ __('КПП') }}:</label>
+                                                    <p class="lead">{{ $user->kpp }}</p>
+                                                </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @else
+                                        <div class="alert alert-secondary">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            <span>Банковские реквизиты не заполнены. Вы можете добавить их в разделе "Редактировать профиль".</span>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h5>{{ __('Подпись и печать') }}</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="text-muted">{{ __('Подпись') }}:</label>
+                                            <div class="mt-2">
+                                                @if($user->signature_file)
+                                                    <img src="{{ $user->getSignatureUrl() }}" alt="Подпись" class="img-thumbnail" style="max-height: 100px;">
+                                                @else
+                                                    <div class="alert alert-secondary">
+                                                        <i class="fas fa-file-image me-2"></i>
+                                                        <span>Файл подписи не загружен</span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="text-muted">{{ __('Печать') }}:</label>
+                                            <div class="mt-2">
+                                                @if($user->stamp_file)
+                                                    <img src="{{ $user->getStampUrl() }}" alt="Печать" class="img-thumbnail" style="max-height: 100px;">
+                                                @else
+                                                    <div class="alert alert-secondary">
+                                                        <i class="fas fa-certificate me-2"></i>
+                                                        <span>Файл печати не загружен</span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -62,6 +200,91 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Кнопка сброса туров обучения
+    const resetButton = document.getElementById('resetTours');
+    if (resetButton) {
+        resetButton.addEventListener('click', function() {
+            // Показываем индикатор загрузки
+            resetButton.disabled = true;
+            resetButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Сбрасываем...';
+            
+            // Очищаем локальное хранилище
+            if (typeof window.resetAllTours === 'function') {
+                try {
+                    // Если функция resetAllTours доступна, она сделает запрос к API
+                    window.resetAllTours();
+                    
+                    // Проверяем статус через 1 секунду (даем время на выполнение запроса)
+                    setTimeout(() => {
+                        resetButton.innerHTML = '<i class="fas fa-check me-2"></i>Сброшено успешно';
+                        setTimeout(() => {
+                            resetButton.innerHTML = '<i class="fas fa-redo me-2"></i>Сбросить прогресс обучения';
+                            resetButton.disabled = false;
+                        }, 2000);
+                    }, 1000);
+                } catch (error) {
+                    handleResetError(error);
+                }
+            } else {
+                // Если функция недоступна, очищаем хранилище напрямую и делаем запрос
+                resetToursManually();
+            }
+            
+            function resetToursManually() {
+                // Очищаем локальное хранилище
+                const tourKeys = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key.startsWith('tour_') && key.endsWith('_completed')) {
+                        tourKeys.push(key);
+                    }
+                }
+                tourKeys.forEach(key => localStorage.removeItem(key));
+                
+                // Отправляем запрос на сервер для сброса данных в БД
+                fetch('/api/tours/reset', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    credentials: 'same-origin' // Важно для работы с аутентификацией
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Ошибка ответа сервера: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Показываем сообщение об успехе
+                        alert('Прогресс обучения успешно сброшен. При следующем посещении страниц вы снова увидите подсказки.');
+                        resetButton.innerHTML = '<i class="fas fa-check me-2"></i>Сброшено успешно';
+                        setTimeout(() => {
+                            resetButton.innerHTML = '<i class="fas fa-redo me-2"></i>Сбросить прогресс обучения';
+                            resetButton.disabled = false;
+                        }, 2000);
+                    }
+                })
+                .catch(handleResetError);
+            }
+            
+            function handleResetError(error) {
+                console.error('Ошибка при сбросе туров:', error);
+                alert('Произошла ошибка при сбросе прогресса обучения. Попробуйте обновить страницу и повторить попытку.');
+                resetButton.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Ошибка';
+                resetButton.disabled = false;
+            }
+        });
+    }
+});
+</script>
+@endpush
 
 <style>
 .profile-avatar {

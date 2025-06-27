@@ -23,7 +23,7 @@
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
             @foreach($project->contractFiles as $file)
                 <div class="col">
-                    <div class="card h-100 contract-file-card">
+                    <div class="card h-100 contract-file-card overflow-hidden">
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-3">
                                 <div class="file-icon me-3">
@@ -81,6 +81,7 @@
                     @csrf
                     <input type="hidden" name="file_type" value="contract">
                     
+                    <!-- Основная форма (будет скрыта при загрузке) -->
                     <div class="mb-3">
                         <label for="contractFile" class="form-label">Выберите файл</label>
                         <input type="file" class="form-control" id="contractFile" name="file" required>
@@ -102,9 +103,17 @@
                         <textarea class="form-control" id="fileDescription" name="description" rows="3" placeholder="Добавьте краткое описание файла"></textarea>
                     </div>
                     
+                    <!-- Контейнер прогресса загрузки (по умолчанию скрыт) -->
+                    <div class="upload-progress d-none">
+                        <div class="progress mb-3">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="progress-info text-center">Загрузка...</div>
+                    </div>
+                    
                     <div class="text-end">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                        <button type="submit" class="btn btn-primary">Загрузить</button>
+                        <button type="button" class="btn btn-primary upload-file-btn">Загрузить</button>
                     </div>
                 </form>
             </div>

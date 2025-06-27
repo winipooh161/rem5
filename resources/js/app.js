@@ -1,8 +1,15 @@
 import './bootstrap';
 import $ from 'jquery';
+import './project-file-upload';
+import { initTour, manualStartTour, resetAllTours } from './tours';
 
 // Глобальный доступ к jQuery
 window.$ = window.jQuery = $;
+
+// Глобальный доступ к функциям туров
+window.initTour = initTour;
+window.manualStartTour = manualStartTour;
+window.resetAllTours = resetAllTours;
 
 
 
@@ -100,6 +107,9 @@ function initializeSidebar() {
 document.addEventListener('DOMContentLoaded', function() {
     initializeBootstrapComponents();
     initializeSidebar();
+    
+    // Определение текущей страницы и запуск тура если нужно
+    detectCurrentPageAndInitTour();
 });
 
 // Импортируем наш новый скрипт автозаполнения адресов
@@ -118,3 +128,64 @@ window.addEventListener('DOMContentLoaded', function() {
     }
     console.log('jQuery статус:', window.$ ? 'доступен' : 'недоступен');
 });
+
+// Функция для определения текущей страницы и запуска соответствующего тура
+function detectCurrentPageAndInitTour() {
+    // Получение текущего пути из URL
+    const path = window.location.pathname;
+    
+    // Определение ключа страницы на основе URL
+    let pageKey = 'dashboard'; // По умолчанию
+    
+    if (path.includes('/partner')) {
+        if (path === '/partner/dashboard' || path === '/partner') {
+            pageKey = 'dashboard';
+        } else if (path === '/partner/projects') {
+            pageKey = 'projects-list';
+        } else if (path === '/partner/estimates') {
+            pageKey = 'estimates-list';
+        } else if (path === '/partner/employees') {
+            pageKey = 'employees';
+        } else if (path === '/partner/calculator') {
+            pageKey = 'calculator';
+        } else if (path === '/partner/estimates/create') {
+            pageKey = 'estimate-create';
+        } else if (path.match(/\/partner\/estimates\/\d+\/edit$/)) {
+            pageKey = 'estimate-edit';
+        } else if (path.match(/\/partner\/projects\/\d+$/)) {
+            pageKey = 'project';
+        } else if (path.match(/\/partner\/projects\/\d+\/files$/)) {
+            pageKey = 'project-files';
+        } else if (path.match(/\/partner\/projects\/\d+\/photos$/)) {
+            pageKey = 'project-photos';
+        } else if (path.match(/\/partner\/projects\/\d+\/estimates$/)) {
+            pageKey = 'project-estimates';
+        } else if (path.match(/\/partner\/projects\/\d+\/schedule$/)) {
+            pageKey = 'project-schedule';
+        } else if (path.match(/\/partner\/projects\/\d+\/finance$/)) {
+            pageKey = 'project-finance';
+        } else if (path.match(/\/partner\/projects\/\d+\/checks$/)) {
+            pageKey = 'project-checks';
+        }
+    } else if (path.includes('/client')) {
+        if (path === '/client/dashboard' || path === '/client') {
+            pageKey = 'client-dashboard';
+        } else if (path === '/client/projects') {
+            pageKey = 'client-projects-list';
+        } else if (path.match(/\/client\/projects\/\d+$/)) {
+            pageKey = 'client-project';
+        } else if (path.match(/\/client\/projects\/\d+\/files$/)) {
+            pageKey = 'client-project-files';
+        } else if (path.match(/\/client\/projects\/\d+\/photos$/)) {
+            pageKey = 'client-project-photos';
+        } else if (path.match(/\/client\/projects\/\d+\/estimates$/)) {
+            pageKey = 'client-project-estimates';
+        } else if (path.match(/\/client\/projects\/\d+\/schedule$/)) {
+            pageKey = 'client-project-schedule';
+        }
+    }
+    
+    // Запускаем тур для определенной страницы
+    console.log('Запуск тура для страницы:', pageKey);
+    initTour(pageKey);
+}

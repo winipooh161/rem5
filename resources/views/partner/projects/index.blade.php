@@ -145,300 +145,224 @@
             </div>
         </div>
     @else
+        <!-- Пагинация и карточки проектов -->
         <div class="row" id="projects-container">
             @include('partner.projects.partials.projects-cards')
         </div>
-        
-        <!-- Скрытый элемент для хранения данных о пагинации -->
-        <div id="pagination-data" class="d-none" 
-             data-current-page="{{ $projects->currentPage() }}" 
-             data-last-page="{{ $projects->lastPage() }}" 
-             data-has-more-pages="{{ $projects->hasMorePages() ? 'true' : 'false' }}">
-        </div>
-        
-        <div id="loading-indicator" class="my-4" style="display: none;">
-            <div class="text-center mb-3 loading-pulse">
-                <div class="spinner-grow spinner-grow-sm text-primary me-1" role="status">
-                    <span class="visually-hidden">Загрузка...</span>
-                </div>
-                <div class="spinner-grow spinner-grow-sm text-primary me-1" role="status">
-                    <span class="visually-hidden">Загрузка...</span>
-                </div>
-                <div class="spinner-grow spinner-grow-sm text-primary" role="status">
-                    <span class="visually-hidden">Загрузка...</span>
-                </div>
-                <p class="mt-2 text-muted">Загрузка объектов...</p>
-            </div>
-            
-            <div class="row" id="skeleton-loader">
-                <!-- Скелетон-карточки для визуализации загрузки -->
-                @for ($i = 0; $i < 3; $i++)
-                <div class="col-12 col-md-6 col-xl-4 mb-3">
-                    <div class="card h-100 skeleton-card">
-                        <div class="card-header d-flex justify-content-between align-items-center p-2 px-3">
-                            <div class="skeleton-text" style="width: 70%;"></div>
-                            <div class="skeleton-badge"></div>
-                        </div>
-                        <div class="card-body p-3">
-                            <div class="mb-2">
-                                <div class="d-flex">
-                                    <div class="skeleton-icon me-2"></div>
-                                    <div class="skeleton-text" style="width: 90%;"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="row mb-2">
-                                <div class="col-6">
-                                    <div class="d-flex align-items-center">
-                                        <div class="skeleton-icon me-2"></div>
-                                        <div class="skeleton-text" style="width: 80%;"></div>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="d-flex align-items-center justify-content-end">
-                                        <div class="skeleton-icon me-2"></div>
-                                        <div class="skeleton-text" style="width: 50%;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="row mb-2">
-                                <div class="col-6">
-                                    <div class="d-flex align-items-center">
-                                        <div class="skeleton-icon me-2"></div>
-                                        <div class="skeleton-text" style="width: 70%;"></div>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="d-flex align-items-center justify-content-end">
-                                        <div class="skeleton-icon me-2"></div>
-                                        <div class="skeleton-text" style="width: 60%;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <hr class="my-2">
-                            
-                            <div class="skeleton-text mb-2" style="width: 90%;"></div>
-                            <div class="skeleton-text mb-2" style="width: 85%;"></div>
-                            
-                            <div class="text-end">
-                                <div class="skeleton-text" style="width: 40%; float: right;"></div>
-                            </div>
-                        </div>
-                        <div class="card-footer d-flex p-2">
-                            <div class="skeleton-button me-2" style="width: 50%;"></div>
-                            <div class="skeleton-button" style="width: 50%;"></div>
-                        </div>
-                    </div>
-                </div>
-                @endfor
-            </div>
-        </div>
-        
-        <div id="end-of-content" class="text-center my-4 py-3" style="display: none;">
-            <div class="d-inline-block px-4 py-3 rounded-pill bg-light">
-                <i class="fas fa-check-circle text-success me-2"></i>
-                <span class="text-muted">Вы просмотрели все объекты</span>
-            </div>
+
+        <div class="pagination-container mt-4 d-flex justify-content-center" id="pagination-container">
+            {{ $projects->links() }}
         </div>
     @endif
 </div>
 
+<!-- Модальное окно для документов -->
+<div class="modal fade" id="documentModal" tabindex="-1" aria-labelledby="documentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="documentModalLabel">Генерация документа</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <h6>Параметры документа</h6>
+                    <form id="documentForm">
+                        <input type="hidden" id="document-project-id" name="project_id" value="">
+                        <input type="hidden" id="document-type" name="document_type" value="">
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Формат документа</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="format" id="format-pdf" value="pdf" checked>
+                                <label class="btn btn-outline-primary" for="format-pdf">PDF</label>
+                                
+                                <input type="radio" class="btn-check" name="format" id="format-docx" value="docx">
+                                <label class="btn btn-outline-primary" for="format-docx">DOCX</label>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="include-signature" name="include_signature">
+                                <label class="form-check-label" for="include-signature">Добавить подпись</label>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="include-stamp" name="include_stamp">
+                                <label class="form-check-label" for="include-stamp">Добавить печать</label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="mb-3">
+                    <h6>Предпросмотр документа</h6>
+                    <div id="document-preview-loading" class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Загрузка...</span>
+                        </div>
+                        <p class="mt-2">Загрузка предпросмотра...</p>
+                    </div>
+                    <div id="document-preview-container" class="border rounded p-3 bg-light" style="max-height: 400px; overflow-y: auto; display: none;">
+                        <div id="document-preview-content"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <button type="button" class="btn btn-success" id="download-document">
+                    <i class="fas fa-download me-2"></i>Скачать документ
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Получаем элементы формы
-        const filterForm = document.getElementById('filterForm');
-        
-        // Проверяем существование формы фильтров перед работой с ней
-        if (filterForm) {
-            const filterSelects = filterForm.querySelectorAll('select');
-            const searchInput = filterForm.querySelector('input[name="search"]');
-        
-        // Авто-отправка формы при изменении селектов
-        filterSelects.forEach(function(select) {
+document.addEventListener('DOMContentLoaded', function() {
+    // Фильтрация проектов
+    const filterForm = document.getElementById('filterForm');
+    if (filterForm) {
+        const selects = filterForm.querySelectorAll('select');
+        selects.forEach(select => {
             select.addEventListener('change', function() {
                 filterForm.submit();
             });
         });
-        
-        // Отправка формы поиска после паузы в наборе текста на десктопах
-        let typingTimer;
-        const doneTypingInterval = 800; // время в мс
-        
-        searchInput.addEventListener('keyup', function() {
-            // Для мобильных устройств не используем автоматическую отправку
-            if (window.innerWidth > 768) {
-                clearTimeout(typingTimer);
-                if (searchInput.value) {
-                    typingTimer = setTimeout(function() {
-                        filterForm.submit();
-                    }, doneTypingInterval);
-                }
-            }
-        });
-        
-        // Логика бесконечной прокрутки и подгрузки объектов
-        const projectsContainer = document.getElementById('projects-container');
-        const loadingIndicator = document.getElementById('loading-indicator');
-        const endOfContentMsg = document.getElementById('end-of-content');
-        const paginationData = document.getElementById('pagination-data');
-        
-        // Глобальная переменная для отслеживания состояния загрузки
-        let isLoading = false;
-        let hasReachedEnd = false;
-        
-        // Функция для проверки, достигли ли мы последней страницы
-        function isLastPage() {
-            if (!paginationData) return true;
-            
-            const currentPage = parseInt(paginationData.dataset.currentPage);
-            const lastPage = parseInt(paginationData.dataset.lastPage);
-            return currentPage >= lastPage;
-        }
-        
-        // Функция для обновления данных о пагинации
-        function updatePaginationData(currentPage, hasMorePages) {
-            if (paginationData) {
-                paginationData.dataset.currentPage = currentPage;
-                paginationData.dataset.hasMorePages = hasMorePages ? 'true' : 'false';
-            }
-        }
-        
-        // Функция для загрузки дополнительных проектов
-        function loadMoreProjects() {
-            // Если уже идет загрузка или достигнута последняя страница, выходим
-            if (isLoading || hasReachedEnd || !paginationData) {
-                return;
-            }
-            
-            // Устанавливаем состояние загрузки
-            isLoading = true;
-            loadingIndicator.style.display = 'block';
-            
-            // Создаем URL с параметрами из текущего URL
-            const url = new URL(window.location.href);
-            const currentPage = parseInt(paginationData.dataset.currentPage);
-            url.searchParams.set('page', currentPage + 1);
-            url.searchParams.set('ajax', '1');
-            
-            // Получаем данные через AJAX
-            fetch(url.toString(), {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Ошибка сети: ' + response.status);
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Добавляем новые проекты
-                projectsContainer.insertAdjacentHTML('beforeend', data.html);
-                
-                // Обновляем текущую страницу
-                updatePaginationData(currentPage + 1, data.hasMorePages);
-                
-                // Проверяем, есть ли еще страницы
-                if (currentPage + 1 >= parseInt(paginationData.dataset.lastPage)) {
-                    hasReachedEnd = true;
-                    endOfContentMsg.style.display = 'block';
-                } 
-                
-                // Обновляем счетчик проектов
-                const projectsCounter = document.getElementById('projects-counter');
-                if (projectsCounter) {
-                    const total = data.total || 0;
-                    const perPage = data.perPage || 10;
-                    const loaded = perPage * (currentPage + 1);
-                    
-                    const spans = projectsCounter.querySelectorAll('span');
-                    if (spans.length >= 2) {
-                        spans[0].textContent = Math.min(loaded, total);
-                        spans[1].textContent = total;
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Ошибка при загрузке проектов:', error);
-                // Показываем уведомление об ошибке пользователю
-                const errorNotification = document.createElement('div');
-                errorNotification.className = 'alert alert-danger alert-dismissible fade show mt-3';
-                errorNotification.innerHTML = `
-                    Ошибка при загрузке данных. <button class="btn btn-sm btn-outline-danger ms-2" onclick="loadMoreProjects()">Повторить</button>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                `;
-                projectsContainer.parentNode.insertBefore(errorNotification, projectsContainer.nextSibling);
-            })
-            .finally(() => {
-                // Сбрасываем состояние загрузки
-                setTimeout(() => {
-                    isLoading = false;
-                    loadingIndicator.style.display = 'none';
-                }, 500); // Небольшая задержка для предотвращения многократных запросов
-            });
-        }
-        
-        // Добавляем обработчик прокрутки страницы для автоматической подгрузки
-        let scrollDebounceTimer;
-        window.addEventListener('scroll', function() {
-            if (scrollDebounceTimer) clearTimeout(scrollDebounceTimer);
-            
-            scrollDebounceTimer = setTimeout(() => {
-                // Если уже идет загрузка или достигнут конец контента, выходим
-                if (isLoading || hasReachedEnd) {
-                    return;
-                }
-                
-                // Проверяем, достиг ли пользователь конца страницы
-                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                const windowHeight = window.innerHeight;
-                const documentHeight = Math.max(
-                    document.body.scrollHeight, document.body.offsetHeight,
-                    document.documentElement.clientHeight, document.documentElement.scrollHeight, 
-                    document.documentElement.offsetHeight
-                );
-                
-                // Если пользователь прокрутил почти до конца страницы (за 350px до конца)
-                if (scrollTop + windowHeight > documentHeight - 350) {
-                    loadMoreProjects();
-                }
-            }, 100); // Задержка для предотвращения слишком частых вызовов
-        });
-        
-        // Функция для проверки, виден ли индикатор конца контента без прокрутки
-        function checkIfContentFillsPage() {
-            // Если достигнут конец контента или идет загрузка, выходим
-            if (hasReachedEnd || isLoading) {
-                return;
-            }
-            
-            const windowHeight = window.innerHeight;
-            const documentHeight = Math.max(
-                document.body.scrollHeight, document.body.offsetHeight,
-                document.documentElement.clientHeight, document.documentElement.scrollHeight, 
-                document.documentElement.offsetHeight
-            );
-            
-            // Если контент занимает меньше высоты окна плюс запас
-            if (documentHeight < windowHeight + 200) {
-                loadMoreProjects();
-            }
-        }
-        
-        // Проверяем необходимость загрузки при первой загрузке страницы
-        setTimeout(checkIfContentFillsPage, 500);
-        
-        // Сбросить таймер, если пользователь продолжил печатать
-        // Проверяем наличие поля поиска перед добавлением слушателя событий
-        if (searchInput) {
-            searchInput.addEventListener('keydown', function() {
-                clearTimeout(typingTimer);
-            });
-        }
     }
+    
+    // Обработка выбора документа
+    const documentLinks = document.querySelectorAll('.generate-document');
+    documentLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const projectId = this.getAttribute('data-project-id');
+            const documentType = this.getAttribute('data-document-type');
+            
+            // Устанавливаем значения в модальном окне
+            document.getElementById('document-project-id').value = projectId;
+            document.getElementById('document-type').value = documentType;
+            
+            // Устанавливаем заголовок модального окна
+            let documentTitle = '';
+            switch(documentType) {
+                case 'completion_act_ip_ip': documentTitle = 'Акт завершения ремонта ИП-ИП'; break;
+                case 'completion_act_fl_ip': documentTitle = 'Акт завершения ремонта ФЛ-ИП'; break;
+                case 'act_ip_ip': documentTitle = 'Акт ИП-ИП'; break;
+                case 'act_fl_ip': documentTitle = 'Акт ФЛ-ИП'; break;
+                case 'bso': documentTitle = 'БСО'; break;
+                case 'invoice_ip': documentTitle = 'Счет на ИП'; break;
+                case 'invoice_fl': documentTitle = 'Счет на ФЛ'; break;
+            }
+            document.getElementById('documentModalLabel').textContent = documentTitle;
+            
+            // Загружаем предпросмотр
+            loadDocumentPreview();
+        });
+    });
+    
+    // Обновление предпросмотра при изменении параметров
+    document.getElementById('include-signature').addEventListener('change', loadDocumentPreview);
+    document.getElementById('include-stamp').addEventListener('change', loadDocumentPreview);
+    document.querySelectorAll('[name="format"]').forEach(radio => {
+        radio.addEventListener('change', loadDocumentPreview);
+    });
+    
+    // Функция загрузки предпросмотра документа
+    function loadDocumentPreview() {
+        const projectId = document.getElementById('document-project-id').value;
+        const documentType = document.getElementById('document-type').value;
+        const includeSignature = document.getElementById('include-signature').checked;
+        const includeStamp = document.getElementById('include-stamp').checked;
+        
+        // Показываем индикатор загрузки
+        document.getElementById('document-preview-loading').style.display = 'block';
+        document.getElementById('document-preview-container').style.display = 'none';
+        
+        // Отправляем запрос на предпросмотр документа
+        const formData = new FormData();
+        formData.append('document_type', documentType);
+        formData.append('include_signature', includeSignature ? 1 : 0);
+        formData.append('include_stamp', includeStamp ? 1 : 0);
+        
+        fetch(`/partner/projects/${projectId}/documents/preview`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Скрываем индикатор загрузки
+            document.getElementById('document-preview-loading').style.display = 'none';
+            document.getElementById('document-preview-container').style.display = 'block';
+            
+            // Отображаем HTML документа
+            document.getElementById('document-preview-content').innerHTML = data.html;
+        })
+        .catch(error => {
+            console.error('Ошибка при загрузке предпросмотра:', error);
+            document.getElementById('document-preview-loading').style.display = 'none';
+            document.getElementById('document-preview-container').style.display = 'block';
+            document.getElementById('document-preview-content').innerHTML = 
+                '<div class="alert alert-danger">Ошибка при загрузке предпросмотра документа</div>';
+        });
+    }
+    
+    // Обработка скачивания документа
+    document.getElementById('download-document').addEventListener('click', function() {
+        const projectId = document.getElementById('document-project-id').value;
+        const documentType = document.getElementById('document-type').value;
+        const format = document.querySelector('input[name="format"]:checked').value;
+        const includeSignature = document.getElementById('include-signature').checked;
+        const includeStamp = document.getElementById('include-stamp').checked;
+        
+        // Создаем форму для отправки
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/partner/projects/${projectId}/documents/generate`;
+        form.style.display = 'none';
+        
+        // Добавляем CSRF токен
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = '_token';
+        csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        form.appendChild(csrfToken);
+        
+        // Добавляем параметры
+        const documentTypeInput = document.createElement('input');
+        documentTypeInput.type = 'hidden';
+        documentTypeInput.name = 'document_type';
+        documentTypeInput.value = documentType;
+        form.appendChild(documentTypeInput);
+        
+        const formatInput = document.createElement('input');
+        formatInput.type = 'hidden';
+        formatInput.name = 'format';
+        formatInput.value = format;
+        form.appendChild(formatInput);
+        
+        const includeSignatureInput = document.createElement('input');
+        includeSignatureInput.type = 'hidden';
+        includeSignatureInput.name = 'include_signature';
+        includeSignatureInput.value = includeSignature ? 1 : 0;
+        form.appendChild(includeSignatureInput);
+        
+        const includeStampInput = document.createElement('input');
+        includeStampInput.type = 'hidden';
+        includeStampInput.name = 'include_stamp';
+        includeStampInput.value = includeStamp ? 1 : 0;
+        form.appendChild(includeStampInput);
+        
+        // Добавляем форму на страницу и отправляем
+        document.body.appendChild(form);
+        form.submit();
+    });
 });
 </script>
 
@@ -487,7 +411,7 @@
     
     /* Растянутые ссылки */
     .stretched-link::after {
-        position: absolute;
+       position: relative !important;
         top: 0;
         right: 0;
         bottom: 0;

@@ -3,6 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\NotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,6 +17,25 @@ use App\Http\Controllers\HomeController;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+
+// Маршруты для административной панели
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
+    Route::get('/', [AdminController::class, 'index'])->name('admin.dashboard');
+    
+    // Маршруты для управления пользователями
+    Route::resource('users', UserController::class, ['as' => 'admin']);
+    
+    // Маршруты для управления уведомлениями
+    Route::get('notifications', [NotificationController::class, 'showForm'])->name('admin.notifications.form');
+    Route::post('notifications/send', [NotificationController::class, 'send'])->name('admin.notifications.send');
+});
+
+require __DIR__ . '/web/profile.php';
+
+// Подключаем маршруты для отладки (только для локального окружения)
+if (app()->environment('local')) {
+    require __DIR__ . '/web/debug.php';
+}
 
 Route::get('/', function () {
     return view('home');
@@ -38,6 +60,12 @@ require __DIR__ . '/web/partner_extensions.php';
 require __DIR__ . '/web/partner_project_features.php';
 require __DIR__ . '/web/partner_tools.php';
 require __DIR__ . '/web/partner_finance.php';
+require __DIR__ . '/web/partner_documents.php';
 require __DIR__ . '/web/client.php';
 require __DIR__ . '/web/estimator.php';
 require __DIR__ . '/web/profile.php';
+
+// Подключаем маршруты для тестирования страниц ошибок
+if (env('APP_DEBUG', false)) {
+    require __DIR__ . '/web/test-errors.php';
+}

@@ -6,11 +6,7 @@
         <div class="col-md-8">
             <h1 class="h3 mb-2">Сметы</h1>
         </div>
-        <div class="col-md-4 text-md-end">
-            <a href="<?php echo e(route('partner.estimates.create')); ?>" class="btn btn-primary">
-                <i class="fas fa-plus-circle me-1"></i>Создать смету
-            </a>
-        </div>
+        
     </div>
 
     <!-- Панель фильтров -->
@@ -93,6 +89,7 @@
         </div>
         <div class="card-body">
             <?php echo $__env->make('partner.estimates.partials.estimates-list', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+            <?php echo $__env->make('partner.estimates.partials.dropdown-init-script', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
         </div>
     </div>
 
@@ -229,6 +226,9 @@ function initializeSelect2() {
     });
 }
 </script>
+
+<!-- Специальный скрипт для исправления выпадающих меню на странице оценок -->
+<script src="<?php echo e(asset('js/estimates-dropdowns.js')); ?>"></script>
 <?php $__env->stopPush(); ?>
 
 <?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\OSPanel\domains\remont\resources\views/partner/estimates/index.blade.php ENDPATH**/ ?>

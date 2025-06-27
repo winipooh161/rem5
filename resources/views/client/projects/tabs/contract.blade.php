@@ -15,7 +15,7 @@
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
             @foreach($project->contractFiles as $file)
                 <div class="col">
-                    <div class="card h-100 contract-file-card">
+                    <div class="card h-100 contract-file-card overflow-hidden">
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-3">
                                 <div class="file-icon me-3">
@@ -40,7 +40,7 @@
                                         <a href="{{ $file->file_url }}" class="btn btn-sm btn-outline-info me-1" target="_blank">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                    @endif                                    <a href="{{ route('client.project-files.download', $file->id) }}" class="btn btn-sm btn-outline-primary">
+                                    @endif                                    <a href="{{ $file->client_download_url }}" class="btn btn-sm btn-outline-primary">
                                         <i class="fas fa-download"></i>
                                     </a>
                                 </div>

@@ -365,4 +365,21 @@ class Project extends Model
         
         return $passport;
     }
+    
+    /**
+     * Получает клиента, связанного с проектом
+     * Пытается связать по phone или client_phone, в зависимости от доступных полей
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function client(): BelongsTo
+    {
+        // Если у нас есть поле client_phone, используем его для связи
+        if(in_array('client_phone', $this->fillable)) {
+            return $this->belongsTo(User::class, 'client_phone', 'phone')->where('role', 'client');
+        }
+        
+        // В противном случае используем поле phone
+        return $this->belongsTo(User::class, 'phone', 'phone')->where('role', 'client');
+    }
 }

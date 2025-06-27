@@ -1162,4 +1162,391 @@ class EstimateExcelController extends Controller
             \Illuminate\Support\Facades\Log::error('Ошибка при применении синего стиля: ' . $e->getMessage());
         }
     }
+    
+    /**
+     * Экспортирует смету в файл Excel для заказчика (без колонок для мастера)
+     */
+    public function exportClient(Estimate $estimate)
+    {
+        $this->authorize('view', $estimate);
+        
+        // Проверяем, существует ли файл
+        if (!$estimate->file_path || !Storage::disk('public')->exists($estimate->file_path)) {
+            // Если файла нет, создаем его
+            $this->createInitialExcelFile($estimate);
+        }
+        
+        // В любом случае применяем улучшенное форматирование
+        $this->enhanceExistingFileFormatting($estimate);
+        
+        try {
+            // Загружаем файл
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load(storage_path('app/public/' . $estimate->file_path));
+            $sheet = $spreadsheet->getActiveSheet();
+            
+            // Показываем только столбцы A-E и J для заказчика (согласно требованиям)
+            $sheet->getColumnDimension('F')->setVisible(false); // Стоимость для мастера
+            $sheet->getColumnDimension('G')->setVisible(false); // Наценка, %
+            $sheet->getColumnDimension('H')->setVisible(false); // Скидка, %
+            $sheet->getColumnDimension('I')->setVisible(false); // Цена для заказчика 
+            
+            // Переименовываем заголовок J (Стоимость для заказчика)
+            $headerRow = 5;
+            $sheet->setCellValue('J' . $headerRow, 'Стоимость для заказчика');
+            
+            // Создаем временный файл
+            $tempFilePath = tempnam(sys_get_temp_dir(), 'client_estimate_');
+            
+            // Сохраняем в файл
+            $writer = new Xlsx($spreadsheet);
+            $writer->setPreCalculateFormulas(false); // Не пересчитываем формулы
+            $writer->save($tempFilePath);
+            
+            // Возвращаем файл для скачивания
+            $fileName = 'Смета_для_заказчика_' . preg_replace('/[^a-zA-Zа-яА-Я0-9_\- ]/u', '', $estimate->name) . '.xlsx';
+            $fileName = str_replace(' ', '_', $fileName);
+            
+            return response()->download($tempFilePath, $fileName)->deleteFileAfterSend(true);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Ошибка при экспорте Excel файла для заказчика: ' . $e->getMessage(), [
+                'estimate_id' => $estimate->id,
+                'exception' => $e
+            ]);
+            
+            return back()->with('error', 'Произошла ошибка при экспорте для заказчика: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Экспортирует смету в файл Excel для мастера (подрядчика)
+     */
+    public function exportContractor(Estimate $estimate)
+    {
+        $this->authorize('view', $estimate);
+        
+        // Проверяем, существует ли файл
+        if (!$estimate->file_path || !Storage::disk('public')->exists($estimate->file_path)) {
+            // Если файла нет, создаем его
+            $this->createInitialExcelFile($estimate);
+        }
+        
+        // В любом случае применяем улучшенное форматирование
+        $this->enhanceExistingFileFormatting($estimate);
+        
+        try {
+            // Загружаем файл
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load(storage_path('app/public/' . $estimate->file_path));
+            $sheet = $spreadsheet->getActiveSheet();
+            
+            // Показываем только столбцы A-F для мастера (согласно требованиям)
+            $sheet->getColumnDimension('G')->setVisible(false); // Наценка, %
+            $sheet->getColumnDimension('H')->setVisible(false); // Скидка, %
+            $sheet->getColumnDimension('I')->setVisible(false); // Цена для заказчика
+            $sheet->getColumnDimension('J')->setVisible(false); // Стоимость для заказчика
+            
+            // Переименовываем заголовки для удобства мастера
+            $headerRow = 5;
+            $sheet->setCellValue('E' . $headerRow, 'Цена, руб.');
+            $sheet->setCellValue('F' . $headerRow, 'Стоимость');
+            
+            // Создаем временный файл
+            $tempFilePath = tempnam(sys_get_temp_dir(), 'master_estimate_');
+            
+            // Сохраняем в файл
+            $writer = new Xlsx($spreadsheet);
+            $writer->setPreCalculateFormulas(false); // Не пересчитываем формулы
+            $writer->save($tempFilePath);
+            
+            // Возвращаем файл для скачивания
+            $fileName = 'Смета_для_мастера_' . preg_replace('/[^a-zA-Zа-яА-Я0-9_\- ]/u', '', $estimate->name) . '.xlsx';
+            $fileName = str_replace(' ', '_', $fileName);
+            
+            return response()->download($tempFilePath, $fileName)->deleteFileAfterSend(true);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Ошибка при экспорте Excel файла для мастера: ' . $e->getMessage(), [
+                'estimate_id' => $estimate->id,
+                'exception' => $e
+            ]);
+            
+            return back()->with('error', 'Произошла ошибка при экспорте для мастера: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Экспортирует смету в файл PDF для заказчика
+     */
+    public function exportPdfClient(Estimate $estimate)
+    {
+        $this->authorize('view', $estimate);
+        
+        // Проверяем, существует ли файл
+        if (!$estimate->file_path || !Storage::disk('public')->exists($estimate->file_path)) {
+            // Если файла нет, создаем его
+            $this->createInitialExcelFile($estimate);
+        }
+        
+        // В любом случае применяем улучшенное форматирование
+        $this->enhanceExistingFileFormatting($estimate);
+        
+        try {
+            // Получаем путь к файлу Excel
+            $excelFilePath = storage_path('app/public/' . $estimate->file_path);
+            
+            // Загружаем данные из Excel
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($excelFilePath);
+            $worksheet = $spreadsheet->getActiveSheet();
+            $data = $worksheet->toArray(null, true, true, true);
+            
+            // Задаем стили для PDF
+            $styles = '
+                <style>
+                    body { font-family: "sans-serif", "DejaVu Sans", Arial, sans-serif; font-size: 10pt; line-height: 1.3; }
+                    h1 { text-align: center; color: #2F75B5; margin-bottom: 20px; font-size: 16pt; }
+                    .estimate-info { margin-bottom: 15px; }
+                    table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+                    table, th, td { border: 1px solid #ddd; }
+                    th { background-color: #2F75B5; color: white; padding: 10px; text-align: center; }
+                    td { padding: 8px; text-align: left; }
+                    tr:nth-child(even) { background-color: #f9f9f9; }
+                    .text-right { text-align: right; }
+                    .text-center { text-align: center; }
+                    .bold { font-weight: bold; }
+                    .section-header { background-color: #366092; color: white; font-weight: bold; }
+                    .total-row { background-color: #BDD7EE; font-weight: bold; }
+                </style>
+            ';
+            
+            // Формируем HTML для PDF с UTF-8 кодировкой
+            $html = '<!DOCTYPE html>
+            <html>
+            <head>
+                <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+                <link href="' . public_path('css/pdf-fonts.css') . '" rel="stylesheet" type="text/css" />
+                ' . $styles . '
+                <title>Смета для заказчика - ' . $estimate->name . '</title>
+            </head>
+            <body>
+                <h1>Смета для заказчика - ' . $estimate->name . '</h1>
+                <div class="estimate-info">
+                    <p><strong>Дата:</strong> ' . now()->format('d.m.Y') . '</p>
+                    ' . ($estimate->project ? '<p><strong>Объект:</strong> ' . $estimate->project->address . '</p>' : '') . '
+                </div>
+                <table>';
+            
+            // Определим первую строку как заголовок
+            $isFirstRow = true;
+            $headerRow = 5; // Обычно заголовки находятся в строке 5
+            
+            foreach ($data as $rowIndex => $row) {
+                // Пропускаем пустые строки или строки до заголовков
+                $isEmpty = true;
+                foreach ($row as $cell) {
+                    if (!empty($cell)) {
+                        $isEmpty = false;
+                        break;
+                    }
+                }
+                if ($isEmpty || $rowIndex < $headerRow) continue;
+                
+                // Определяем стиль строки
+                $rowClass = '';
+                $cellB = isset($row['B']) ? $row['B'] : '';
+                
+                if (is_string($cellB)) {
+                    if (mb_stripos($cellB, 'ИТОГО') !== false) {
+                        $rowClass = 'class="total-row"';
+                    } elseif (mb_stripos($cellB, 'раздел') !== false || mb_stripos($cellB, '.') === 0 || preg_match('/^\d+\./', $cellB)) {
+                        $rowClass = 'class="section-header"';
+                    }
+                }
+                
+                if ($rowIndex == $headerRow) {
+                    // Это заголовок таблицы
+                    $html .= '<tr>';
+                    $html .= '<th>' . (isset($row['A']) ? htmlspecialchars($row['A']) : '№') . '</th>';
+                    $html .= '<th>' . (isset($row['B']) ? htmlspecialchars($row['B']) : 'Наименование материалов') . '</th>';
+                    $html .= '<th>' . (isset($row['C']) ? htmlspecialchars($row['C']) : 'Ед. изм.') . '</th>';
+                    $html .= '<th>' . (isset($row['D']) ? htmlspecialchars($row['D']) : 'Кол-во') . '</th>';
+                    $html .= '<th>' . (isset($row['E']) ? htmlspecialchars($row['E']) : 'Цена, руб.') . '</th>';
+                    // Показываем только столбец J (Стоимость для заказчика)
+                    $html .= '<th>' . (isset($row['J']) ? htmlspecialchars($row['J']) : 'Стоимость для заказчика') . '</th>';
+                    $html .= '</tr>';
+                } else {
+                    $html .= "<tr $rowClass>";
+                    $html .= '<td class="text-center">' . (isset($row['A']) ? htmlspecialchars($row['A']) : '') . '</td>';
+                    $html .= '<td>' . (isset($row['B']) ? htmlspecialchars($row['B']) : '') . '</td>';
+                    $html .= '<td class="text-center">' . (isset($row['C']) ? htmlspecialchars($row['C']) : '') . '</td>';
+                    $html .= '<td class="text-center">' . (isset($row['D']) ? htmlspecialchars($row['D']) : '') . '</td>';
+                    $html .= '<td class="text-right">' . (isset($row['E']) ? htmlspecialchars($row['E']) : '') . '</td>';
+                    // Показываем только столбец J (Стоимость для заказчика)
+                    $html .= '<td class="text-right">' . (isset($row['J']) ? htmlspecialchars($row['J']) : '') . '</td>';
+                    $html .= '</tr>';
+                }
+            }
+            
+            $html .= '
+                </table>
+                <div class="signature">
+                    <p><strong>Подпись заказчика: __________________________</strong></p>
+                </div>
+            </body></html>';
+            
+            // Генерируем PDF
+            $pdf = Pdf::loadHTML($html);
+            
+            // Устанавливаем размеры и ориентацию
+            $pdf->setPaper('a4', 'landscape');
+            
+            // Возвращаем PDF для скачивания
+            $fileName = 'Смета_для_заказчика_' . preg_replace('/[^a-zA-Zа-яА-Я0-9_\- ]/u', '', $estimate->name) . '.pdf';
+            $fileName = str_replace(' ', '_', $fileName);
+            
+            return $pdf->download($fileName);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Ошибка при экспорте PDF файла для заказчика: ' . $e->getMessage(), [
+                'estimate_id' => $estimate->id,
+                'exception' => $e
+            ]);
+            
+            return back()->with('error', 'Произошла ошибка при экспорте в PDF для заказчика: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Экспортирует смету в файл PDF для мастера (подрядчика)
+     */
+    public function exportPdfContractor(Estimate $estimate)
+    {
+        $this->authorize('view', $estimate);
+        
+        // Проверяем, существует ли файл
+        if (!$estimate->file_path || !Storage::disk('public')->exists($estimate->file_path)) {
+            // Если файла нет, создаем его
+            $this->createInitialExcelFile($estimate);
+        }
+        
+        // В любом случае применяем улучшенное форматирование
+        $this->enhanceExistingFileFormatting($estimate);
+        
+        try {
+            // Получаем путь к файлу Excel
+            $excelFilePath = storage_path('app/public/' . $estimate->file_path);
+            
+            // Загружаем данные из Excel
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($excelFilePath);
+            $worksheet = $spreadsheet->getActiveSheet();
+            $data = $worksheet->toArray(null, true, true, true);
+            
+            // Задаем стили для PDF
+            $styles = '
+                <style>
+                    body { font-family: "sans-serif", "DejaVu Sans", Arial, sans-serif; font-size: 10pt; line-height: 1.3; }
+                    h1 { text-align: center; color: #2F75B5; margin-bottom: 20px; font-size: 16pt; }
+                    .estimate-info { margin-bottom: 15px; }
+                    table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+                    table, th, td { border: 1px solid #ddd; }
+                    th { background-color: #2F75B5; color: white; padding: 10px; text-align: center; }
+                    td { padding: 8px; text-align: left; }
+                    tr:nth-child(even) { background-color: #f9f9f9; }
+                    .text-right { text-align: right; }
+                    .text-center { text-align: center; }
+                    .bold { font-weight: bold; }
+                    .section-header { background-color: #366092; color: white; font-weight: bold; }
+                    .total-row { background-color: #BDD7EE; font-weight: bold; }
+                </style>
+            ';
+            
+            // Формируем HTML для PDF с UTF-8 кодировкой
+            $html = '<!DOCTYPE html>
+            <html>
+            <head>
+                <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+                <link href="' . public_path('css/pdf-fonts.css') . '" rel="stylesheet" type="text/css" />
+                ' . $styles . '
+                <title>Смета для мастера - ' . $estimate->name . '</title>
+            </head>
+            <body>
+                <h1>Смета для мастера - ' . $estimate->name . '</h1>
+                <div class="estimate-info">
+                    <p><strong>Дата:</strong> ' . now()->format('d.m.Y') . '</p>
+                    ' . ($estimate->project ? '<p><strong>Объект:</strong> ' . $estimate->project->address . '</p>' : '') . '
+                </div>
+                <table>';
+            
+            // Определим первую строку как заголовок
+            $isFirstRow = true;
+            $headerRow = 5; // Обычно заголовки находятся в строке 5
+            
+            foreach ($data as $rowIndex => $row) {
+                // Пропускаем пустые строки или строки до заголовков
+                $isEmpty = true;
+                foreach ($row as $cell) {
+                    if (!empty($cell)) {
+                        $isEmpty = false;
+                        break;
+                    }
+                }
+                if ($isEmpty || $rowIndex < $headerRow) continue;
+                
+                // Определяем стиль строки
+                $rowClass = '';
+                $cellB = isset($row['B']) ? $row['B'] : '';
+                
+                if (is_string($cellB)) {
+                    if (mb_stripos($cellB, 'ИТОГО') !== false) {
+                        $rowClass = 'class="total-row"';
+                    } elseif (mb_stripos($cellB, 'раздел') !== false || mb_stripos($cellB, '.') === 0 || preg_match('/^\d+\./', $cellB)) {
+                        $rowClass = 'class="section-header"';
+                    }
+                }
+                
+                if ($rowIndex == $headerRow) {
+                    // Это заголовок таблицы
+                    $html .= '<tr>';
+                    $html .= '<th>' . (isset($row['A']) ? htmlspecialchars($row['A']) : '№') . '</th>';
+                    $html .= '<th>' . (isset($row['B']) ? htmlspecialchars($row['B']) : 'Наименование материалов') . '</th>';
+                    $html .= '<th>' . (isset($row['C']) ? htmlspecialchars($row['C']) : 'Ед. изм.') . '</th>';
+                    $html .= '<th>' . (isset($row['D']) ? htmlspecialchars($row['D']) : 'Кол-во') . '</th>';
+                    $html .= '<th>' . (isset($row['E']) ? htmlspecialchars($row['E']) : 'Цена, руб.') . '</th>';
+                    $html .= '<th>' . (isset($row['F']) ? htmlspecialchars($row['F']) : 'Стоимость') . '</th>';
+                    $html .= '</tr>';
+                } else {
+                    $html .= "<tr $rowClass>";
+                    $html .= '<td class="text-center">' . (isset($row['A']) ? htmlspecialchars($row['A']) : '') . '</td>';
+                    $html .= '<td>' . (isset($row['B']) ? htmlspecialchars($row['B']) : '') . '</td>';
+                    $html .= '<td class="text-center">' . (isset($row['C']) ? htmlspecialchars($row['C']) : '') . '</td>';
+                    $html .= '<td class="text-center">' . (isset($row['D']) ? htmlspecialchars($row['D']) : '') . '</td>';
+                    $html .= '<td class="text-right">' . (isset($row['E']) ? htmlspecialchars($row['E']) : '') . '</td>';
+                    $html .= '<td class="text-right">' . (isset($row['F']) ? htmlspecialchars($row['F']) : '') . '</td>';
+                    $html .= '</tr>';
+                }
+            }
+            
+            $html .= '
+                </table>
+                <div class="signature">
+                    <p><strong>Подпись мастера: __________________________</strong></p>
+                </div>
+            </body></html>';
+            
+            // Генерируем PDF
+            $pdf = Pdf::loadHTML($html);
+            
+            // Устанавливаем размеры и ориентацию
+            $pdf->setPaper('a4', 'landscape');
+            
+            // Возвращаем PDF для скачивания
+            $fileName = 'Смета_для_мастера_' . preg_replace('/[^a-zA-Zа-яА-Я0-9_\- ]/u', '', $estimate->name) . '.pdf';
+            $fileName = str_replace(' ', '_', $fileName);
+            
+            return $pdf->download($fileName);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Ошибка при экспорте PDF файла для мастера: ' . $e->getMessage(), [
+                'estimate_id' => $estimate->id,
+                'exception' => $e
+            ]);
+            
+            return back()->with('error', 'Произошла ошибка при экспорте в PDF для мастера: ' . $e->getMessage());
+        }
+    }
 }

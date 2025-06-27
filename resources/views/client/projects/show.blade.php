@@ -4,19 +4,23 @@
 <div class="container-fluid">
     <div class="mb-4">
         <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between">
-            <h1 class="h3 mb-2 mb-md-0">{{ $project->client_name }}: {{ $project->address }}{{ $project->apartment_number ? ', кв. ' . $project->apartment_number : '' }}</h1>
-            <div class="d-flex mt-2 mt-md-0">
+            <div>
+                <h1 class="h3 mb-2 mb-md-0">
+                    {{ $project->client_name }}: {{ Str::limit($project->address, 30) }}{{ $project->apartment_number ? ', кв. ' . $project->apartment_number : '' }}
+                </h1>
+                <div class="d-flex align-items-center flex-wrap mt-2">
+                    <span class="badge {{ $project->status == 'active' ? 'bg-success' : ($project->status == 'paused' ? 'bg-warning text-dark' : ($project->status == 'completed' ? 'bg-info' : 'bg-secondary')) }} me-2">
+                        {{ $project->status == 'active' ? 'Активен' : ($project->status == 'paused' ? 'Приостановлен' : ($project->status == 'completed' ? 'Завершен' : 'Отменен')) }}
+                    </span>
+                    <span class="text-muted small">{{ $project->work_type_text }}</span>
+                </div>
+            </div>
+            <div class="mt-3 mt-md-0">
                 <a href="{{ route('client.projects.index') }}" class="btn btn-outline-secondary btn-sm">
                     <i class="fas fa-arrow-left me-1"></i>К списку объектов
                 </a>
             </div>
         </div>
-        <p class="text-muted mb-0">
-            <span class="badge {{ $project->status == 'active' ? 'bg-success' : ($project->status == 'paused' ? 'bg-warning text-dark' : ($project->status == 'completed' ? 'bg-info' : 'bg-secondary')) }}">
-                {{ $project->status == 'active' ? 'Активен' : ($project->status == 'paused' ? 'Приостановлен' : ($project->status == 'completed' ? 'Завершен' : 'Отменен')) }}
-            </span>
-            <span class="ms-2">{{ $project->work_type_text }}</span>
-        </p>
     </div>
 
     @if(session('success'))
@@ -27,10 +31,11 @@
     @endif
 
     <!-- Панель вкладок с горизонтальной прокруткой -->
-    <div class="card mb-4">
+    <div class="card mb-4 project-tabs-card">
         <div class="card-header p-0 position-relative">
             <div class="nav-tabs-wrapper">
-                <ul class="nav nav-tabs" id="projectTabs" role="tablist">
+                <div class="nav-tabs-scroll-indicator d-none d-md-block"></div>
+                <ul class="nav nav-tabs" id="projectTabs" data-project-id="{{ $project->id }}" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link {{ request('tab') == null ? 'active' : ''}}" id="main-tab" data-bs-toggle="tab" data-bs-target="#main" type="button" role="tab" aria-controls="main" aria-selected="{{ request('tab') == null ? 'true' : 'false'}}">
                             <i class="fas fa-info-circle me-1"></i>Основная информация
@@ -45,11 +50,7 @@
                             <i class="fas fa-tasks me-1"></i>План-график
                         </button>
                     </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link {{ request('tab') == 'calendar' ? 'active' : ''}}" id="calendar-tab" data-bs-toggle="tab" data-bs-target="#calendar" type="button" role="tab" aria-controls="calendar" aria-selected="{{ request('tab') == 'calendar' ? 'true' : 'false'}}">
-                            <i class="fas fa-calendar-alt me-1"></i>Календарь
-                        </button>
-                    </li>
+    
                     <li class="nav-item" role="presentation">
                         <button class="nav-link {{ request('tab') == 'camera' ? 'active' : ''}}" id="camera-tab" data-bs-toggle="tab" data-bs-target="#camera" type="button" role="tab" aria-controls="camera" aria-selected="{{ request('tab') == 'camera' ? 'true' : 'false'}}">
                             <i class="fas fa-video me-1"></i>Камера
@@ -70,18 +71,8 @@
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link {{ request('tab') == 'schemes' ? 'active' : ''}}" id="schemes-tab" data-bs-toggle="tab" data-bs-target="#schemes" type="button" role="tab" aria-controls="schemes" aria-selected="{{ request('tab') == 'schemes' ? 'true' : 'false'}}">
-                            <i class="fas fa-project-diagram me-1"></i>Схемы
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link {{ request('tab') == 'documents' ? 'active' : ''}}" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents" type="button" role="tab" aria-controls="documents" aria-selected="{{ request('tab') == 'documents' ? 'true' : 'false'}}">
-                            <i class="fas fa-file-alt me-1"></i>Документы
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link {{ request('tab') == 'contract' ? 'active' : ''}}" id="contract-tab" data-bs-toggle="tab" data-bs-target="#contract" type="button" role="tab" aria-controls="contract" aria-selected="{{ request('tab') == 'contract' ? 'true' : 'false'}}">
-                            <i class="fas fa-file-signature me-1"></i>Договор
+                        <button class="nav-link {{ request('tab') == 'documentation' ? 'active' : ''}}" id="documentation-tab" data-bs-toggle="tab" data-bs-target="#documentation" type="button" role="tab" aria-controls="documentation" aria-selected="{{ request('tab') == 'documentation' ? 'true' : 'false'}}">
+                            <i class="fas fa-file-alt me-1"></i>Документация
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
@@ -103,9 +94,7 @@
                 </div>                <div class="tab-pane fade {{ request('tab') == 'schedule' ? 'show active' : ''}}" id="schedule" role="tabpanel" aria-labelledby="schedule-tab">
                     @include('client.projects.tabs.schedule')
                 </div>
-                <div class="tab-pane fade {{ request('tab') == 'calendar' ? 'show active' : ''}}" id="calendar" role="tabpanel" aria-labelledby="calendar-tab">
-                    @include('client.projects.tabs.calendar')
-                </div>
+
                 <div class="tab-pane fade {{ request('tab') == 'camera' ? 'show active' : ''}}" id="camera" role="tabpanel" aria-labelledby="camera-tab">
                     @include('client.projects.tabs.camera')
                 </div>                <div class="tab-pane fade{{ request('tab') == 'photos' ? 'show active' : ''}}" id="photos" role="tabpanel" aria-labelledby="photos-tab">
@@ -117,14 +106,8 @@
                 <div class="tab-pane fade {{ request('tab') == 'design' ? 'show active' : ''}}" id="design" role="tabpanel" aria-labelledby="design-tab">
                     @include('client.projects.tabs.design')
                 </div>
-                <div class="tab-pane fade {{ request('tab') == 'schemes' ? 'show active' : ''}}" id="schemes" role="tabpanel" aria-labelledby="schemes-tab">
-                    @include('client.projects.tabs.schemes')
-                </div>
-                <div class="tab-pane fade {{ request('tab') == 'documents' ? 'show active' : ''}}" id="documents" role="tabpanel" aria-labelledby="documents-tab">
-                    @include('client.projects.tabs.documents')
-                </div>
-                <div class="tab-pane fade {{ request('tab') == 'contract' ? 'show active' : ''}}" id="contract" role="tabpanel" aria-labelledby="contract-tab">
-                    @include('client.projects.tabs.contract')
+                <div class="tab-pane fade {{ request('tab') == 'documentation' ? 'show active' : ''}}" id="documentation" role="tabpanel" aria-labelledby="documentation-tab">
+                    @include('client.projects.tabs.documentation')
                 </div>
                 <div class="tab-pane fade {{ request('tab') == 'other' ? 'show active' : ''}}" id="other" role="tabpanel" aria-labelledby="other-tab">
                     @include('client.projects.tabs.other')
@@ -135,50 +118,9 @@
 </div>
 
 <script>
-// Добавляем скрипт для индикации горизонтальной прокрутки на мобильных устройствах
+// Базовая инициализация для страницы проекта
 document.addEventListener('DOMContentLoaded', function() {
-    const tabsContainer = document.querySelector('.nav-tabs');
-    
-    if (tabsContainer) {
-        // Проверяем наличие горизонтальной прокрутки
-        function checkScroll() {
-            const hasScroll = tabsContainer.scrollWidth > tabsContainer.clientWidth;
-            const indicator = document.querySelector('.nav-tabs-scroll-indicator');
-            
-            if (indicator) {
-                indicator.style.display = hasScroll ? 'block' : 'none';
-            }
-        }
-        
-        // Вызываем при загрузке и при изменении размера окна
-        checkScroll();
-        window.addEventListener('resize', checkScroll);
-        
-        // Сохраняем активную вкладку в URL
-        const tabLinks = document.querySelectorAll('.nav-link');
-        tabLinks.forEach(link => {
-            link.addEventListener('click', function() {
-                const tabId = this.getAttribute('id').replace('-tab', '');
-                const url = new URL(window.location);
-                
-                if (tabId === 'main') {
-                    url.searchParams.delete('tab');
-                } else {
-                    url.searchParams.set('tab', tabId);
-                }
-                
-                window.history.pushState({}, '', url);
-            });
-        });
-        
-        // Добавляем класс для мобильной адаптации таблиц при загрузке
-        const tables = document.querySelectorAll('.table');
-        tables.forEach(table => {
-            if (window.innerWidth <= 768) {
-                table.classList.add('table-card-view');
-            }
-        });
-    }
+    console.log('Инициализация страницы проекта клиента');
 });
 </script>
 
@@ -201,11 +143,26 @@ document.addEventListener('DOMContentLoaded', function() {
     .nav-tabs {
         padding: 0;
         margin: 0;
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: thin;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .nav-tabs::-webkit-scrollbar {
+        height: 3px;
+    }
+    
+    .nav-tabs::-webkit-scrollbar-thumb {
+        background-color: rgba(0,0,0,0.2);
+        border-radius: 4px;
     }
     
     .nav-tabs .nav-link {
         padding: 0.5rem 0.75rem;
         font-size: 0.875rem;
+        white-space: nowrap;
     }
     
     /* Мобильные версии таблиц */
@@ -237,6 +194,102 @@ document.addEventListener('DOMContentLoaded', function() {
         .camera-info {
             font-size: 0.9rem;
         }
+    }
+}
+
+/* Специфичные стили для страницы проекта */
+.project-tabs-card {
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.nav-tabs-wrapper {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+/* Улучшаем вкладки проекта */
+#projectTabs {
+    background-color: #f8f9fa;
+    padding-top: 0.25rem;
+    border-bottom: none;
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+#projectTabs::-webkit-scrollbar {
+    display: none;
+}
+
+#projectTabs .nav-link {
+    color: #555;
+    font-weight: 500;
+    border: none;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+#projectTabs .nav-link:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+#projectTabs .nav-link.active {
+    color: #007bff;
+    background-color: transparent;
+    border-bottom: 2px solid #007bff;
+}
+
+/* Улучшенная навигация на мобильных устройствах */
+@media (max-width: 576px) {
+    /* Общие улучшения для всей страницы */
+    .container-fluid {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    
+    /* Кнопки в мобильном виде */
+    .btn-sm {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    /* Уменьшаем отступы в контейнерах */
+    .tab-pane .mb-3, .tab-pane .mb-4 {
+        margin-bottom: 0.75rem !important;
+    }
+    
+    /* Уменьшаем заголовки */
+    .tab-pane h5 {
+        font-size: 1.1rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    /* Улучшения для мобильной версии страницы проекта */
+    #projectTabs .nav-link {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    #projectTabs .nav-link i {
+        margin-right: 0.2rem;
+    }
+    
+    /* Инидикатор прокрутки для вкладок */
+    .nav-tabs-scroll-indicator {
+        position: absolute;
+        right: 0;
+        top: 0;
+        height: 100%;
+        width: 24px;
+        background: linear-gradient(to right, transparent, rgba(248, 249, 250, 0.9));
+        pointer-events: none;
+        z-index: 1;
     }
 }
 </style>

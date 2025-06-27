@@ -81,11 +81,13 @@
 
                 </td>
                 <td>
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                    <div class="dropdown estimate-action-dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle estimate-action-btn" 
                                 type="button" 
                                 data-bs-toggle="dropdown" 
-                                aria-expanded="false">
+                                aria-expanded="false"
+                                data-bs-auto-close="true"
+                                id="dropdown-<?php echo e($estimate->id); ?>">
                             <i class="fas fa-cogs me-1"></i> Действия
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
@@ -99,8 +101,28 @@
                                 </a>
                             </li>
                             <li>
+                                <a class="dropdown-item" href="<?php echo e(route('partner.estimates.exportClient', $estimate->id)); ?>">
+                                    <i class="fas fa-file-excel me-2"></i>Скачать Excel для заказчика
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="<?php echo e(route('partner.estimates.exportContractor', $estimate->id)); ?>">
+                                    <i class="fas fa-file-excel me-2"></i>Скачать Excel для мастера
+                                </a>
+                            </li>
+                            <li>
                                 <a class="dropdown-item" href="<?php echo e(route('partner.estimates.exportPdf', $estimate->id)); ?>">
                                     <i class="fas fa-file-pdf me-2"></i>Скачать PDF
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="<?php echo e(route('partner.estimates.exportPdfClient', $estimate->id)); ?>">
+                                    <i class="fas fa-file-pdf me-2"></i>Скачать PDF для заказчика
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="<?php echo e(route('partner.estimates.exportPdfContractor', $estimate->id)); ?>">
+                                    <i class="fas fa-file-pdf me-2"></i>Скачать PDF для мастера
                                 </a>
                             </li>
                             <li>
@@ -149,6 +171,49 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (confirm(`Вы уверены, что хотите удалить смету "${name}"? Это действие нельзя отменить.`)) {
                 this.submit();
+            }
+        });
+    });
+    
+    // Улучшенная обработка клика по кнопке выпадающего меню
+    document.querySelectorAll('.estimate-action-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Принудительно загружаем скрипт с исправлениями выпадающих меню, если еще не загружен
+            if (!window.estimateDropdownsLoaded) {
+                const script = document.createElement('script');
+                script.src = '/js/estimates-dropdowns.js';
+                script.onload = () => {
+                    window.estimateDropdownsLoaded = true;
+                    console.log('Скрипт с исправлениями выпадающих меню загружен');
+                };
+                document.head.appendChild(script);
+            }
+
+            // Если Bootstrap полностью загружен, пробуем создать/показать выпадающее меню
+            if (typeof bootstrap !== 'undefined') {
+                try {
+                    const dropdownInstance = new bootstrap.Dropdown(button, {
+                        autoClose: true
+                    });
+                    dropdownInstance.show();
+                } catch (err) {
+                    console.error('Ошибка при показе выпадающего меню:', err);
+                }
+            }
+        });
+    });
+    
+    // Обработчики для элементов внутри выпадающих меню
+    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+        menu.addEventListener('click', function(e) {
+            // Если клик не по элементу меню или по форме удаления,
+            // предотвращаем закрытие выпадающего меню
+            if (!e.target.classList.contains('dropdown-item') || 
+                e.target.closest('form.delete-form')) {
+                e.stopPropagation();
             }
         });
     });

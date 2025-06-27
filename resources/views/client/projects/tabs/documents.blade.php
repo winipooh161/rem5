@@ -13,7 +13,7 @@
     @else
         <!-- Фильтры по типам документов -->
         <div class="mb-3">
-            <div class="document-filter btn-group flex-wrap">
+            <div class="document-filter">
                 <button type="button" class="btn btn-sm btn-outline-secondary active" data-filter="all">
                     Все
                 </button>
@@ -31,16 +31,16 @@
 
         <!-- Список документов -->
         <div class="documents-container">
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3 mobile-optimized overflow-hidden">
                 @foreach($project->documentFiles as $file)
                     <div class="col document-item" data-type="{{ $file->document_type }}">
-                        <div class="card h-100 document-card">
+                        <div class="card h-100 document-card overflow-hidden">
                             <div class="card-body">
-                                <div class="d-flex align-items-center mb-3">
+                                <div class="d-flex align-items-start align-items-sm-center mb-3">
                                     <div class="document-icon me-3">
                                         <i class="far {{ $file->file_icon }} fa-2x text-primary"></i>
                                     </div>
-                                    <div>
+                                    <div class="flex-grow-1 min-width-0">
                                         <h6 class="card-title mb-0 text-truncate" title="{{ $file->original_name }}">
                                             {{ $file->original_name }}
                                         </h6>
@@ -63,7 +63,7 @@
                                             <a href="{{ $file->file_url }}" class="btn btn-sm btn-outline-info me-1" target="_blank" title="Просмотр">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                        @endif                                        <a href="{{ route('client.project-files.download', $file->id) }}" class="btn btn-sm btn-outline-primary" title="Скачать">
+                                        @endif                                        <a href="{{ $file->client_download_url }}" class="btn btn-sm btn-outline-primary" title="Скачать">
                                             <i class="fas fa-download"></i>
                                         </a>
                                     </div>
@@ -119,9 +119,62 @@
     display: none;
 }
 
+/* Стили для фильтрации документов */
+.document-filter {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+    scrollbar-width: none; /* Firefox */
+}
+
+.document-filter::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Edge */
+}
+
+.document-filter .btn {
+    flex-shrink: 0;
+    margin-right: 6px;
+}
+
+.document-filter .btn.active {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+
+/* Стили для карточек документов */
+.document-card {
+    transition: all 0.2s ease;
+}
+
+.document-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.document-icon i {
+    background-color: rgba(0, 123, 255, 0.1);
+    padding: 12px;
+    border-radius: 8px;
+    color: #007bff;
+}
+
+.document-meta {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.min-width-0 {
+    min-width: 0;
+}
+
 @media (max-width: 576px) {
     .document-card {
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        margin-bottom: 10px;
     }
     
     .document-card .card-body {
@@ -130,11 +183,11 @@
     
     .document-card h6 {
         font-size: 0.9rem;
-        max-width: 180px;
     }
     
     .document-card .document-icon i {
         font-size: 1.5rem;
+        padding: 8px;
     }
     
     .document-card .btn-sm {
@@ -145,6 +198,7 @@
     .document-filter .btn {
         padding: 0.25rem 0.5rem;
         font-size: 0.75rem;
+        margin-right: 4px;
     }
     
     /* Улучшенный контейнер фильтров */
@@ -153,6 +207,19 @@
         max-width: 100%;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+        padding-bottom: 5px;
+        margin-bottom: 10px;
+    }
+    
+    /* Улучшение для блоков документов */
+    .mobile-optimized {
+        margin-left: -0.5rem;
+        margin-right: -0.5rem;
+    }
+    
+    .mobile-optimized .col {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
     }
 }
 </style>

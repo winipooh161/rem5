@@ -37,7 +37,7 @@
                             <a href="{{ $file->download_url }}" class="btn btn-sm btn-outline-primary" download>
                                 <i class="fas fa-download me-1"></i>Скачать
                             </a>
-                            <button type="button" class="btn btn-sm btn-outline-danger delete-file" data-file-id="{{ $file->id }}">
+                            <button type="button" class="btn btn-sm btn-outline-danger delete-file" data-file-id="{{ $file->id }}" data-project-id="{{ $project->id }}">
                                 <i class="fas fa-trash me-1"></i>Удалить
                             </button>
                         </div>
@@ -68,22 +68,37 @@
                     </div>
                     
                     <div class="mb-3">
+                        <label for="schemeType" class="form-label">Тип схемы/чертежа</label>
+                        <select class="form-select" id="schemeType" name="document_type">
+                            <option value="floor">Планы этажей</option>
+                            <option value="electrical">Электрические схемы</option>
+                            <option value="plumbing">Водоснабжение/Канализация</option>
+                            <option value="ventilation">Вентиляция/Кондиционирование</option>
+                            <option value="construction">Строительные чертежи</option>
+                            <option value="other">Другое</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
                         <label for="schemeDescription" class="form-label">Описание файла (необязательно)</label>
                         <textarea class="form-control" id="schemeDescription" name="description" rows="2" placeholder="Добавьте краткое описание файла"></textarea>
                     </div>
-                </form>
-                
-                <div class="upload-progress d-none">
-                    <div class="progress">
-                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                    
+                    <!-- Контейнер прогресса загрузки (по умолчанию скрыт) -->
+                    <div class="upload-progress d-none">
+                        <div class="progress mb-3">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="progress-info text-center">Загрузка...</div>
                     </div>
-                    <p class="text-center mt-2 mb-0 progress-info">Загрузка файла...</p>
-                </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="button" class="btn btn-primary upload-file-btn">Загрузить</button>
+                    </div>
+                </form>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                <button type="button" class="btn btn-primary" id="uploadSchemeButton">Загрузить</button>
-            </div>
+            
         </div>
     </div>
 </div>

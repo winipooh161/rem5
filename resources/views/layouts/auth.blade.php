@@ -4,7 +4,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'Laravel') }}</title>
+    <title>
+        @if(isset($pageTitle))
+            {{ $pageTitle }} - {{ config('app.name', 'Laravel') }}
+        @else
+            {{ config('app.name', 'Laravel') }}
+        @endif
+    </title>
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,6 +38,9 @@
                 <a class="navbar-brand" href="{{ url('/') }}">
                     {{ config('app.name', 'Laravel') }}
                 </a>
+                @if(isset($pageTitle))
+                    <span class="d-none d-md-inline text-secondary ms-2 fw-light">/ {{ $pageTitle }}</span>
+                @endif
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                     data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
                     aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">

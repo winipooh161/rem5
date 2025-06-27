@@ -52,7 +52,7 @@
                     <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
                         @foreach($project->designFiles->where('document_type', $category) as $file)
                             <div class="col">
-                                <div class="card h-100 design-file-card">
+                                <div class="card h-100 design-file-card overflow-hidden">
                                     @if($file->is_image)
                                         <div class="card-img-top design-preview">
                                             <a href="{{ $file->file_url }}" target="_blank" data-lightbox="design-{{ $category }}" data-title="{{ $file->original_name }}">
@@ -116,6 +116,7 @@
                     @csrf
                     <input type="hidden" name="file_type" value="design">
                     
+                    <!-- Основная форма (будет скрыта при загрузке) -->
                     <div class="mb-3">
                         <label for="designFile" class="form-label">Выберите файл</label>
                         <input type="file" class="form-control" id="designFile" name="file" required>
@@ -138,9 +139,17 @@
                         <textarea class="form-control" id="designDescription" name="description" rows="3" placeholder="Добавьте краткое описание файла"></textarea>
                     </div>
                     
+                    <!-- Контейнер прогресса загрузки (по умолчанию скрыт) -->
+                    <div class="upload-progress d-none">
+                        <div class="progress mb-3">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="progress-info text-center">Загрузка...</div>
+                    </div>
+                    
                     <div class="d-flex flex-column flex-md-row justify-content-end">
                         <button type="button" class="btn btn-secondary mb-2 mb-md-0 me-md-2 w-100 w-md-auto" data-bs-dismiss="modal">Отмена</button>
-                        <button type="submit" class="btn btn-primary w-100 w-md-auto">Загрузить</button>
+                        <button type="button" class="btn btn-primary w-100 w-md-auto upload-file-btn">Загрузить</button>
                     </div>
                 </form>
             </div>

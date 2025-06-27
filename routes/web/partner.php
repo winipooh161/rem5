@@ -25,8 +25,9 @@ Route::middleware(['auth', 'partner'])->prefix('partner')->name('partner.')->gro
     
     // Маршруты для файлов проектов
     Route::prefix('projects/{project}')->group(function () {
-        Route::post('/files', [ProjectController::class, 'uploadFile'])->name('project-files.store');
-        Route::delete('/files/{file}', [ProjectController::class, 'deleteFile'])->name('project-files.destroy');
+        Route::post('/files', [ProjectFileController::class, 'store'])->name('project-files.store');
+        Route::get('/files/{file}', [ProjectFileController::class, 'show'])->name('project-files.show');
+        Route::delete('/files/{file}', [ProjectFileController::class, 'destroy'])->name('project-files.destroy');
         Route::get('/files/{file}/download', [ProjectFileController::class, 'download'])->name('project-files.download');
     });
     
@@ -40,6 +41,17 @@ Route::middleware(['auth', 'partner'])->prefix('partner')->name('partner.')->gro
         ->name('estimates.export');
     Route::get('estimates/{estimate}/export-pdf', [EstimateExcelController::class, 'exportPdf'])
         ->name('estimates.exportPdf');
+    
+    // Новые маршруты для экспорта смет для заказчика и мастера
+    Route::get('estimates/{estimate}/export-client', [EstimateExcelController::class, 'exportClient'])
+        ->name('estimates.exportClient');
+    Route::get('estimates/{estimate}/export-contractor', [EstimateExcelController::class, 'exportContractor'])
+        ->name('estimates.exportContractor');
+    Route::get('estimates/{estimate}/export-pdf-client', [EstimateExcelController::class, 'exportPdfClient'])
+        ->name('estimates.exportPdfClient');
+    Route::get('estimates/{estimate}/export-pdf-contractor', [EstimateExcelController::class, 'exportPdfContractor'])
+        ->name('estimates.exportPdfContractor');
+        
     Route::get('estimates/{estimate}/data', [EstimateExcelController::class, 'getData'])->name('estimates.getData');
     Route::post('estimates/{estimate}/saveExcel', [EstimateExcelController::class, 'saveExcelData'])->name('estimates.saveExcel');
     Route::post('estimates/{estimate}/upload', [EstimateExcelController::class, 'upload'])->name('estimates.upload');

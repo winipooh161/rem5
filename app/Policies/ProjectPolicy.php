@@ -56,7 +56,22 @@ class ProjectPolicy
      */
     public function update(User $user, Project $project): bool
     {
-        return $user->isAdmin() || $project->partner_id === $user->id;
+        // Логируем детали для отладки
+        Log::debug('ProjectPolicy::update вызван', [
+            'user_id' => $user->id,
+            'user_role' => $user->role,
+            'project_id' => $project->id,
+            'project_partner_id' => $project->partner_id,
+            'is_admin' => $user->isAdmin()
+        ]);
+        
+        // Администраторы могут обновлять любой проект
+        if ($user->isAdmin()) {
+            return true;
+        }
+        
+        // Партнеры могут обновлять только свои проекты
+        return $project->partner_id === $user->id;
     }
 
     /**

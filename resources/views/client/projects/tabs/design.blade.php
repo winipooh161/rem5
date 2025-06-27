@@ -46,7 +46,7 @@
                     <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
                         @foreach($project->designFiles->where('document_type', $category) as $file)
                             <div class="col">
-                                <div class="card h-100 design-file-card">
+                                <div class="card h-100 design-file-card overflow-hidden">
                                     @if($file->is_image)
                                         <div class="card-img-top design-preview">
                                             <a href="{{ $file->file_url }}" target="_blank" data-lightbox="design-{{ $category }}" data-title="{{ $file->original_name }}">
@@ -74,7 +74,7 @@
                                             <p class="card-text small mb-3">{{ $file->description }}</p>
                                         @endif
                                         
-                                        <div class="d-flex">                                            <a href="{{ route('client.project-files.download', $file->id) }}" class="btn btn-sm btn-outline-primary w-100">
+                                        <div class="d-flex">                                            <a href="{{ $file->client_download_url }}" class="btn btn-sm btn-outline-primary w-100">
                                                 <i class="fas fa-download me-1"></i>Скачать
                                             </a>
                                         </div>

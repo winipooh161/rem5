@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\View\Composers\TourViewComposer;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
 
@@ -24,5 +26,8 @@ class AppServiceProvider extends ServiceProvider
         if (request()->secure() || config('app.force_https')) {
             URL::forceScheme('https');
         }
+        
+        // Регистрируем композер для представлений с информацией о турах
+        View::composer('*', TourViewComposer::class);
     }
 }

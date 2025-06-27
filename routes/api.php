@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Partner\ProjectScheduleController;
 use App\Http\Controllers\Partner\ExcelTemplateController;
 use App\Http\Controllers\Partner\ProjectController;
+use App\Http\Controllers\TourController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,6 +26,12 @@ Route::middleware(['web', 'auth:sanctum'])->get('/user', function (Request $requ
 Route::middleware(['web', 'auth'])->group(function () {
     // Поиск проектов для select'ов (используем web auth вместо sanctum)
     Route::get('/projects/search', [ProjectController::class, 'search']);
+    
+    // API маршруты для системы обучения (с дополнительной проверкой через middleware)
+    Route::middleware('tours')->group(function () {
+        Route::post('/tours/complete', [TourController::class, 'markCompleted']);
+        Route::post('/tours/reset', [TourController::class, 'resetTours']);
+    });
     
     // Получение данных разделов для создания смет
     Route::get('/excel-templates/sections-data', [ExcelTemplateController::class, 'getSectionsData']);

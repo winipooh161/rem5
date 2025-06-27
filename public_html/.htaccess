@@ -4,6 +4,17 @@
     </IfModule>
 
     RewriteEngine On
+    
+    # Перенаправление с /remont на /remont/public
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^(.*)$ /public/$1 [L]
+    
+    # Перенаправление с https://remont/admin на https://remont/public/admin
+    RewriteCond %{HTTP_HOST} ^remont$ [NC]
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ /public/$1 [L,QSA]
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .

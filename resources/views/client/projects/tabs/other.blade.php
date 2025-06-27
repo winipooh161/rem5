@@ -14,7 +14,7 @@
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3 files-container">
             @foreach($project->otherFiles as $file)
                 <div class="col file-item">
-                    <div class="card h-100 other-file-card">
+                    <div class="card h-100 other-file-card overflow-hidden">
                         <div class="card-body p-3">
                             <div class="d-flex align-items-start mb-3">
                                 <div class="file-icon me-3">
@@ -40,7 +40,7 @@
                                     <a href="{{ $file->file_url }}" class="btn btn-sm btn-outline-info me-1" target="_blank" title="Просмотр">
                                         <i class="fas fa-eye me-1"></i><span class="d-none d-md-inline">Просмотр</span>
                                     </a>
-                                @endif                                <a href="{{ route('client.project-files.download', $file->id) }}" class="btn btn-sm btn-outline-primary">
+                                @endif                                <a href="{{ $file->client_download_url }}" class="btn btn-sm btn-outline-primary">
                                     <i class="fas fa-download me-1"></i><span class="d-none d-md-inline">Скачать</span>
                                 </a>
                             </div>

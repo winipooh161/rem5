@@ -62,6 +62,9 @@
                     <option value="draft" {{ (isset($estimate) && $estimate->status == 'draft') || old('status', 'draft') == 'draft' ? 'selected' : '' }}>
                         Черновик
                     </option>
+                    <option value="created" {{ (isset($estimate) && $estimate->status == 'created') || old('status') == 'created' ? 'selected' : '' }}>
+                        Создана
+                    </option>
                     <option value="pending" {{ (isset($estimate) && $estimate->status == 'pending') || old('status') == 'pending' ? 'selected' : '' }}>
                         На рассмотрении
                     </option>

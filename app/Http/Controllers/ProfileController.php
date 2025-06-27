@@ -58,6 +58,17 @@ class ProfileController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255', 'regex:/^[А-Яа-яЁё\s]+$/u'],
             'phone' => ['required', 'string', Rule::unique('users')->ignore($user->id)],
+            // Валидация для банковских реквизитов
+            'bank' => ['nullable', 'string', 'max:255'],
+            'bik' => ['nullable', 'string', 'max:9'],
+            'checking_account' => ['nullable', 'string', 'max:20'],
+            'correspondent_account' => ['nullable', 'string', 'max:20'],
+            'recipient_bank' => ['nullable', 'string', 'max:255'],
+            'inn' => ['nullable', 'string', 'max:12'],
+            'kpp' => ['nullable', 'string', 'max:9'],
+            // Валидация для файлов
+            'signature_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+            'stamp_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
             'email' => ['nullable', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
         ], [
@@ -79,6 +90,41 @@ class ProfileController extends Controller
 
         // Очистка номера телефона от форматирования
         $phone = preg_replace('/[^0-9]/', '', $request->phone);
+
+        // Обработка файла подписи
+        if ($request->hasFile('signature_file')) {
+            // Удаление старого файла подписи
+            if ($user->signature_file) {
+                Storage::disk('public')->delete('signatures/' . $user->signature_file);
+            }
+
+            // Сохранение нового файла подписи
+            $signatureName = time() . '_signature.' . $request->signature_file->extension();
+            $request->signature_file->storeAs('signatures', $signatureName, 'public');
+            $user->signature_file = $signatureName;
+        }
+
+        // Обработка файла печати
+        if ($request->hasFile('stamp_file')) {
+            // Удаление старого файла печати
+            if ($user->stamp_file) {
+                Storage::disk('public')->delete('stamps/' . $user->stamp_file);
+            }
+
+            // Сохранение нового файла печати
+            $stampName = time() . '_stamp.' . $request->stamp_file->extension();
+            $request->stamp_file->storeAs('stamps', $stampName, 'public');
+            $user->stamp_file = $stampName;
+        }
+
+        // Сохранение банковских реквизитов
+        $user->bank = $request->bank;
+        $user->bik = $request->bik;
+        $user->checking_account = $request->checking_account;
+        $user->correspondent_account = $request->correspondent_account;
+        $user->recipient_bank = $request->recipient_bank;
+        $user->inn = $request->inn;
+        $user->kpp = $request->kpp;
 
         $user->name = $request->name;
         $user->phone = $phone;

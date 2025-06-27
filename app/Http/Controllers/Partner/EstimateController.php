@@ -144,7 +144,7 @@ class EstimateController extends Controller
             'name' => 'required|string|max:255',
             'project_id' => 'nullable|exists:projects,id',
             'type' => 'required|in:main,additional,materials',
-            'status' => 'required|in:draft,pending,approved', 
+            'status' => 'required|in:draft,pending,approved,created', 
             'notes' => 'nullable|string',
         ]);
         
@@ -243,7 +243,7 @@ class EstimateController extends Controller
             'name' => 'required|max:255',
             'project_id' => 'nullable|exists:projects,id',
             'type' => 'required|in:main,additional,materials',
-            'status' => 'required|in:draft,sent,approved,rejected',
+            'status' => 'required|in:draft,sent,approved,rejected,created',
             'notes' => 'nullable|string',
         ]);
         

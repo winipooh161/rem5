@@ -17,6 +17,9 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\GenerateEstimateTemplates::class,
         \App\Console\Commands\CleanOldSessions::class,
         \App\Console\Commands\TestSmsNotifications::class,
+        \App\Console\Commands\ApplyToursMigration::class,
+        \App\Console\Commands\CheckTours::class,
+        \App\Console\Commands\ResetTours::class,
     ];
 
     /**

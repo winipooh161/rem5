@@ -102,10 +102,10 @@
         <!-- Общие пункты меню -->
         <li class="sidebar-header mt-3 mb-2">Информация</li>
         <li>
-            <a href="#"><i class="fas fa-info-circle me-2"></i>О компании</a>
+            <a href="https://ediz.ru/"><i class="fas fa-info-circle me-2"></i>О компании</a>
         </li>
         <li>
-            <a href="#"><i class="fas fa-phone me-2"></i>Контакты</a>
+            <a href="https://ediz.ru/contacts"><i class="fas fa-phone me-2"></i>Контакты</a>
         </li>
         <li>
             <a href="#"><i class="fas fa-question-circle me-2"></i>Помощь</a>

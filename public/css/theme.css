@@ -1,0 +1,323 @@
+/**
+ * theme.css - файл для переопределения цветовой схемы сайта
+ * Основной цвет: #01ACFF (голубой)
+ */
+
+:root {
+  --primary: #01ACFF;
+  --primary-light: #33BDFF;
+  --primary-lighter: #66CEFF;
+  --primary-dark: #0089CC;
+  --primary-darker: #006699;
+      --bs-card-border-color: #006699 !important;
+}
+
+/* Основные переопределения Bootstrap */
+.bg-primary { background-color: var(--primary) !important; }
+.bg-secondary { background-color: var(--primary-dark) !important; }
+.bg-info { background-color: var(--primary-lighter) !important; }
+
+.text-primary { color: var(--primary) !important; }
+.text-secondary { color: var(--primary-dark) !important; }
+.text-info { color: var(--primary-lighter) !important; }
+
+.btn-primary {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover, 
+.btn-primary:focus {
+  background-color: var(--primary-dark);
+  border-color: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 137, 204, 0.3);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 137, 204, 0.3);
+}
+
+.btn-secondary {
+  background-color: var(--primary-dark);
+  border-color: var(--primary-dark);
+}
+
+.btn-secondary:hover, 
+.btn-secondary:focus {
+  background-color: var(--primary-darker);
+  border-color: var(--primary-darker);
+}
+
+/* Стили для Sidebar */
+.sidebar {
+  background-color: #ffffff;
+  border-right: 1px solid #e9ecef;
+}
+
+.sidebar .sidebar-header {
+  background-color: var(--primary);
+  color: #ffffff;
+}
+
+.sidebar ul li a {
+  color: #495057;
+  border-left: 3px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.sidebar ul li a:hover {
+  color: var(--primary);
+  background-color: rgba(1, 172, 255, 0.05);
+  border-left-color: var(--primary);
+}
+
+.sidebar ul li.active > a {
+  color: var(--primary);
+  background-color: rgba(1, 172, 255, 0.1);
+  border-left-color: var(--primary);
+}
+
+/* Стили для карточек */
+.card {
+  transition: all 0.3s ease;
+  border-radius: 0.5rem;
+  border-color: #e9ecef;
+}
+
+.card:hover {
+  box-shadow: 0 5px 15px rgba(108, 117, 125, 0.1);
+  transform: translateY(-3px);
+}
+
+.card .card-header {
+  background-color: #ffffff;
+  border-bottom: 2px solid rgba(1, 172, 255, 0.2);
+}
+
+/* Стили для навигационных вкладок */
+.nav-tabs .nav-link {
+  color: #495057;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.nav-tabs .nav-link:hover {
+  color: var(--primary);
+}
+
+.nav-tabs .nav-link.active {
+  color: var(--primary);
+  font-weight: 500;
+  border-color: #dee2e6 #dee2e6 #fff;
+}
+
+.nav-tabs .nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: var(--primary);
+  animation: navTabActive 0.3s ease-in-out;
+}
+
+@keyframes navTabActive {
+  0% { width: 0; left: 50%; }
+  100% { width: 100%; left: 0; }
+}
+
+/* Стиль для таблиц */
+.table thead th {
+  background-color: rgba(1, 172, 255, 0.05);
+  border-bottom: 2px solid rgba(1, 172, 255, 0.3);
+  color: var(--primary-darker);
+}
+
+.table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(1, 172, 255, 0.03);
+}
+
+/* Улучшения для полей ввода */
+.form-control:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 0.2rem rgba(1, 172, 255, 0.25);
+}
+
+.form-control::placeholder {
+  color: #adb5bd;
+  opacity: 0.8;
+}
+
+/* Стили для бейджей */
+.badge-primary {
+  background-color: var(--primary);
+  transition: all 0.3s ease;
+}
+
+.badge-primary:hover {
+  background-color: var(--primary-dark);
+}
+
+/* Стили для всплывающих подсказок */
+.tooltip .tooltip-inner {
+  background-color: var(--primary-dark);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.tooltip.bs-tooltip-top .arrow::before {
+  border-top-color: var(--primary-dark);
+}
+
+.tooltip.bs-tooltip-right .arrow::before {
+  border-right-color: var(--primary-dark);
+}
+
+.tooltip.bs-tooltip-bottom .arrow::before {
+  border-bottom-color: var(--primary-dark);
+}
+
+.tooltip.bs-tooltip-left .arrow::before {
+  border-left-color: var(--primary-dark);
+}
+
+/* Стили для модальных окон */
+.modal .modal-content {
+  border: none;
+  box-shadow: 0 5px 30px rgba(0, 0, 0, 0.2);
+  border-radius: 0.5rem;
+}
+
+.modal.fade .modal-dialog {
+  transition: transform 0.3s ease-out, opacity 0.3s ease;
+}
+
+/* Стили для прогресс-бара */
+.progress {
+  height: 0.6rem;
+  border-radius: 1rem;
+}
+
+.progress .progress-bar {
+  background-color: var(--primary);
+  background-image: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.15) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.15) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 1rem 1rem;
+  animation: progress-bar-stripes 1s linear infinite;
+}
+
+@keyframes progress-bar-stripes {
+  from { background-position: 1rem 0; }
+  to { background-position: 0 0; }
+}
+
+/* Стили для ссылок */
+a {
+  color: var(--primary);
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--primary-dark);
+  text-decoration: none;
+}
+
+/* Адаптивные стили для мобильных устройств */
+@media (max-width: 768px) {
+  .card {
+    margin-bottom: 1rem;
+  }
+  
+  .sidebar {
+    box-shadow: 0 0 15px rgba(33, 37, 41, 0.2);
+  }
+  
+  .btn-primary:hover,
+  .btn-primary:active {
+    transform: none;
+  }
+}
+
+/* Дополнительные улучшения для элементов интерфейса */
+.dropdown-item.active, 
+.dropdown-item:active {
+  background-color: var(--primary);
+}
+
+.dropdown-item:hover {
+  background-color: rgba(1, 172, 255, 0.05);
+  color: var(--primary);
+}
+
+.list-group-item.active {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+/* Пагинация */
+.page-item.active .page-link {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.page-link {
+  color: var(--primary);
+}
+
+.page-link:hover {
+  color: var(--primary-dark);
+}
+
+/* Дополнительные анимации и эффекты */
+.btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn:after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%);
+  transform-origin: 50% 50%;
+}
+
+.btn:focus:not(:active)::after {
+  animation: ripple 0.6s ease-out;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 0.5;
+  }
+  20% {
+    transform: scale(25, 25);
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(40, 40);
+  }
+}

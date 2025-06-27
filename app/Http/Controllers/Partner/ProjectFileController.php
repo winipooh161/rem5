@@ -20,6 +20,14 @@ class ProjectFileController extends Controller
      */
     public function store(Request $request, Project $project)
     {
+        // Логируем информацию о попытке загрузки файла
+        \Illuminate\Support\Facades\Log::debug('Попытка загрузки файла для проекта', [
+            'user_id' => auth()->id(),
+            'user_role' => auth()->user()->role,
+            'project_id' => $project->id,
+            'project_partner_id' => $project->partner_id ?? 'unknown'
+        ]);
+        
         // Проверяем права доступа
         $this->authorize('update', $project);
 
@@ -28,6 +36,7 @@ class ProjectFileController extends Controller
             'file' => 'required|file|max:10240', // Максимум 10MB
             'file_type' => 'required|in:design,scheme,document,contract,other',
             'description' => 'nullable|string|max:255',
+            'document_type' => 'nullable|string|max:100',
         ]);
 
         // Получаем файл из запроса
@@ -55,6 +64,7 @@ class ProjectFileController extends Controller
             'size' => $file->getSize(),
             'mime_type' => $file->getMimeType(),
             'description' => $request->description,
+            'document_type' => $request->document_type ?? 'other', // Если document_type не указан, используем 'other'
         ]);
         
         $project->files()->save($projectFile);
@@ -72,18 +82,32 @@ class ProjectFileController extends Controller
      * @param  \App\Models\ProjectFile  $projectFile
      * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
      */
-    public function download(ProjectFile $projectFile)
+    public function download(Project $project, ProjectFile $file)
     {
-        // Проверяем права доступа
-        $this->authorize('view', $projectFile->project);
+        // Логируем информацию о попытке скачивания файла
+        \Illuminate\Support\Facades\Log::debug('Попытка скачивания файла проекта', [
+            'user_id' => auth()->id(),
+            'user_role' => auth()->user()->role,
+            'project_id' => $project->id,
+            'project_file_id' => $file->id,
+            'project_partner_id' => $project->partner_id ?? 'unknown'
+        ]);
         
-        $path = storage_path('app/public/project_files/' . $projectFile->project_id . '/' . $projectFile->filename);
-        
-        if (!file_exists($path)) {
-            abort(404, 'Файл не найден.');
+        // Проверяем, что файл принадлежит проекту
+        if ($file->project_id !== $project->id) {
+            abort(404, 'Файл не найден или не принадлежит данному проекту.');
         }
         
-        return response()->download($path, $projectFile->original_name);
+        // Проверяем права доступа на просмотр проекта
+        $this->authorize('view', $project);
+        
+        $path = storage_path('app/public/project_files/' . $file->project_id . '/' . $file->filename);
+        
+        if (!file_exists($path)) {
+            abort(404, 'Файл не найден на диске.');
+        }
+        
+        return response()->download($path, $file->original_name);
     }
 
     /**
@@ -92,20 +116,33 @@ class ProjectFileController extends Controller
      * @param  \App\Models\ProjectFile  $projectFile
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
      */
-    public function destroy(ProjectFile $projectFile)
+    public function destroy(Project $project, ProjectFile $file)
     {
-        // Проверяем права доступа
-        $this->authorize('update', $projectFile->project);
+        // Логируем информацию о попытке удаления файла
+        \Illuminate\Support\Facades\Log::debug('Попытка удаления файла проекта', [
+            'user_id' => auth()->id(),
+            'user_role' => auth()->user()->role,
+            'project_id' => $project->id,
+            'project_file_id' => $file->id,
+            'project_partner_id' => $project->partner_id ?? 'unknown'
+        ]);
         
-        // Получаем проект и тип файла перед удалением
-        $project = $projectFile->project;
-        $fileType = $projectFile->file_type;
+        // Проверяем, что файл принадлежит проекту
+        if ($file->project_id !== $project->id) {
+            abort(404, 'Файл не найден или не принадлежит данному проекту.');
+        }
+        
+        // Проверяем права доступа
+        $this->authorize('update', $project);
+        
+        // Получаем тип файла перед удалением
+        $fileType = $file->file_type;
         
         // Удаляем файл из хранилища
-        Storage::disk('public')->delete('project_files/' . $project->id . '/' . $projectFile->filename);
+        Storage::disk('public')->delete('project_files/' . $project->id . '/' . $file->filename);
         
         // Удаляем запись из базы данных
-        $projectFile->delete();
+        $file->delete();
         
         // Если запрос AJAX, возвращаем JSON
         if (request()->ajax()) {
@@ -114,5 +151,45 @@ class ProjectFileController extends Controller
         
         // Иначе перенаправляем обратно с сообщением
         return redirect()->back()->with('success', 'Файл успешно удален');
+    }
+
+    /**
+     * Показать информацию о файле проекта.
+     *
+     * @param  \App\Models\Project  $project
+     * @param  \App\Models\ProjectFile  $file
+     * @return \Illuminate\Http\Response|\Illuminate\Contracts\View\View|\Illuminate\Http\JsonResponse
+     */
+    public function show(Project $project, ProjectFile $file)
+    {
+        // Логируем информацию о попытке просмотра файла
+        \Illuminate\Support\Facades\Log::debug('Попытка просмотра файла проекта', [
+            'user_id' => auth()->id(),
+            'user_role' => auth()->user()->role,
+            'project_id' => $project->id,
+            'project_file_id' => $file->id,
+            'project_partner_id' => $project->partner_id ?? 'unknown'
+        ]);
+        
+        // Проверяем, что файл принадлежит проекту
+        if ($file->project_id !== $project->id) {
+            abort(404, 'Файл не найден или не принадлежит данному проекту.');
+        }
+        
+        // Проверяем права доступа на просмотр проекта
+        $this->authorize('view', $project);
+        
+        // Возвращаем представление с информацией о файле или JSON, в зависимости от запроса
+        if (request()->ajax()) {
+            return response()->json([
+                'file' => $file,
+                'downloadUrl' => route('partner.project-files.download', ['project' => $project->id, 'file' => $file->id])
+            ]);
+        }
+        
+        return view('partner.projects.files.show', [
+            'project' => $project,
+            'file' => $file
+        ]);
     }
 }

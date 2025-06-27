@@ -697,6 +697,8 @@ document.addEventListener('DOMContentLoaded', function() {
     border: 1px solid #ced4da;
     border-radius: 0.375rem;
     font-size: 1rem;
+    padding: 0.375rem 0.75rem;
+    height: auto;
 }
 
 .select2-container--bootstrap-5 .select2-selection--single {
@@ -704,19 +706,43 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .select2-container--bootstrap-5 .select2-selection__rendered {
-    line-height: calc(2.25rem);
-    padding-left: 0.75rem;
+    line-height: 1.5;
+    padding-left: 0;
     color: #495057;
 }
 
 .select2-container--bootstrap-5 .select2-selection__arrow {
     height: calc(2.25rem);
+    right: 0.25rem;
 }
 
 .select2-container--bootstrap-5.select2-container--focus .select2-selection,
 .select2-container--bootstrap-5.select2-container--open .select2-selection {
     border-color: #86b7fe;
     box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Дополнительные стили для результатов и выпадающего списка */
+.select2-container--bootstrap-5 .select2-dropdown {
+    border-color: #86b7fe;
+    border-radius: 0.25rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.175);
+}
+
+.select2-container--bootstrap-5 .select2-dropdown .select2-search .select2-search__field {
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    padding: 0.375rem 0.75rem;
+}
+
+.select2-container--bootstrap-5 .select2-dropdown .select2-results__option--highlighted[aria-selected] {
+    background-color: #0d6efd;
+    color: #fff;
+}
+
+/* Сброс стилей Bootstrap для select внутри Select2 */
+.project-search-select {
+    width: 100%;
 }
 </style>
 

@@ -36,6 +36,8 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\CheckUserActive::class,
+            \App\Http\Middleware\SetPageTitles::class,
         ], 
 
         'api' => [
@@ -70,5 +72,10 @@ class Kernel extends HttpKernel
         'admin.or.client' => \App\Http\Middleware\AdminOrClientMiddleware::class,
         'partner' => \App\Http\Middleware\PartnerMiddleware::class,
         'estimator' => \App\Http\Middleware\EstimatorMiddleware::class,
+        'active.user' => \App\Http\Middleware\CheckUserActive::class,
+        'role' => \App\Http\Middleware\CheckRole::class,
+        'page-titles' => \App\Http\Middleware\SetPageTitles::class,
+        'local_only' => \App\Http\Middleware\LocalEnvironmentOnly::class,
+        'tours' => \App\Http\Middleware\TourMiddleware::class,
     ];
 }

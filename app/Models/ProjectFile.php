@@ -40,7 +40,20 @@ class ProjectFile extends Model
      */
     public function getDownloadUrlAttribute(): string
     {
-        return route('partner.project-files.download', $this->id);
+        return route('partner.project-files.download', [
+            'project' => $this->project_id,
+            'file' => $this->id
+        ]);
+    }
+
+    /**
+     * Получить ссылку для скачивания файла для клиента.
+     *
+     * @return string
+     */
+    public function getClientDownloadUrlAttribute(): string
+    {
+        return route('client.project-files.download', $this->id);
     }
 
     /**

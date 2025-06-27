@@ -111,6 +111,9 @@ unset($__errorArgs, $__bag); ?>" id="status" name="status">
                     <option value="draft" <?php echo e((isset($estimate) && $estimate->status == 'draft') || old('status', 'draft') == 'draft' ? 'selected' : ''); ?>>
                         Черновик
                     </option>
+                    <option value="created" <?php echo e((isset($estimate) && $estimate->status == 'created') || old('status') == 'created' ? 'selected' : ''); ?>>
+                        Создана
+                    </option>
                     <option value="pending" <?php echo e((isset($estimate) && $estimate->status == 'pending') || old('status') == 'pending' ? 'selected' : ''); ?>>
                         На рассмотрении
                     </option>

@@ -91,6 +91,7 @@
         </div>
         <div class="card-body">
             @include('partner.estimates.partials.estimates-list')
+            @include('partner.estimates.partials.dropdown-init-script')
         </div>
     </div>
 
@@ -226,4 +227,7 @@ function initializeSelect2() {
     });
 }
 </script>
+
+<!-- Специальный скрипт для исправления выпадающих меню на странице оценок -->
+<script src="{{ asset('js/estimates-dropdowns.js') }}"></script>
 @endpush

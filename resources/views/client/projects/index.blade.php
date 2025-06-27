@@ -118,7 +118,7 @@
         <div class="row">
             @foreach($projects as $project)
                 <div class="col-12 col-md-6 col-xl-4 mb-3">
-                    <div class="card h-100 project-card">
+                    <div class="card h-100 project-card overflow-hidden">
                         <div class="card-header d-flex justify-content-between align-items-center p-2 px-3">
                             <h5 class="card-title mb-0 text-truncate" style="max-width: 70%;">
                                 <a href="{{ route('client.projects.show', $project) }}" class="text-decoration-none text-dark stretched-link">

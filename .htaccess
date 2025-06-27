@@ -7,7 +7,14 @@
     RewriteCond %{HTTP:X-Forwarded-Proto} !https
     RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
     
-    # Основная директива для направления запросов к публичной директории
-    RewriteCond %{REQUEST_URI} !^public
-    RewriteRule ^(.*)$ public/$1 [L]
+    # Исправление запросов без /public в URL
+    RewriteCond %{REQUEST_URI} !^/public
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    
+    # Специальное правило для URL admin/users
+    RewriteRule ^admin/(.*)$ public/admin/$1 [L,QSA]
+    
+    # Основное правило для всех остальных URL
+    RewriteRule ^(.*)$ public/$1 [L,QSA]
 </IfModule>

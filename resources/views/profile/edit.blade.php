@@ -123,7 +123,7 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="email" class="form-label">{{ __('Email адрес') }} <small class="text-muted">({{ __('Необязательно') }})</small></label>
+                                    <label for="email" class="form-label">{{ __('Email') }}</label>
                                     <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email', $user->email) }}" autocomplete="email">
                                     @error('email')
                                         <span class="invalid-feedback" role="alert">
@@ -131,6 +131,122 @@
                                         </span>
                                     @enderror
                                 </div>
+
+                                <!-- Разделы для партнеров и администраторов -->
+                                @if(auth()->user()->role === 'partner' || auth()->user()->role === 'admin')
+                                    <hr class="my-4">
+                                    <h5 class="mb-4">{{ __('Банковские реквизиты') }}</h5>
+
+                                    <div class="mb-3">
+                                        <label for="bank" class="form-label">{{ __('Банк') }}</label>
+                                        <input id="bank" type="text" class="form-control @error('bank') is-invalid @enderror" name="bank" value="{{ old('bank', $user->bank) }}" placeholder="ФИЛИАЛ &quot;ЦЕНТРАЛЬНЫЙ&quot; БАНКА ВТБ ПАО Г. МОСКВА">
+                                        @error('bank')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="bik" class="form-label">{{ __('БИК') }}</label>
+                                            <input id="bik" type="text" class="form-control @error('bik') is-invalid @enderror" name="bik" value="{{ old('bik', $user->bik) }}">
+                                            @error('bik')
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="checking_account" class="form-label">{{ __('Р/с') }}</label>
+                                            <input id="checking_account" type="text" class="form-control @error('checking_account') is-invalid @enderror" name="checking_account" value="{{ old('checking_account', $user->checking_account) }}">
+                                            @error('checking_account')
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="correspondent_account" class="form-label">{{ __('К/с') }}</label>
+                                        <input id="correspondent_account" type="text" class="form-control @error('correspondent_account') is-invalid @enderror" name="correspondent_account" value="{{ old('correspondent_account', $user->correspondent_account) }}">
+                                        @error('correspondent_account')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="recipient_bank" class="form-label">{{ __('Банк получателя') }}</label>
+                                        <input id="recipient_bank" type="text" class="form-control @error('recipient_bank') is-invalid @enderror" name="recipient_bank" value="{{ old('recipient_bank', $user->recipient_bank) }}">
+                                        @error('recipient_bank')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="inn" class="form-label">{{ __('ИНН') }}</label>
+                                            <input id="inn" type="text" class="form-control @error('inn') is-invalid @enderror" name="inn" value="{{ old('inn', $user->inn) }}">
+                                            @error('inn')
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="kpp" class="form-label">{{ __('КПП') }}</label>
+                                            <input id="kpp" type="text" class="form-control @error('kpp') is-invalid @enderror" name="kpp" value="{{ old('kpp', $user->kpp) }}">
+                                            @error('kpp')
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    <hr class="my-4">
+                                    <h5 class="mb-4">{{ __('Подпись и печать') }}</h5>
+
+                                    <div class="row mb-4">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="signature_file" class="form-label">{{ __('Файл подписи') }}</label>
+                                            <input id="signature_file" type="file" class="form-control @error('signature_file') is-invalid @enderror" name="signature_file" accept="image/*">
+                                            @error('signature_file')
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                            <div class="form-text">Допустимые форматы: JPG, PNG, GIF. Максимальный размер: 2MB</div>
+                                            
+                                            @if($user->signature_file)
+                                                <div class="mt-2">
+                                                    <img src="{{ $user->getSignatureUrl() }}" alt="Подпись" class="img-thumbnail" style="max-height: 100px;">
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="stamp_file" class="form-label">{{ __('Файл печати') }}</label>
+                                            <input id="stamp_file" type="file" class="form-control @error('stamp_file') is-invalid @enderror" name="stamp_file" accept="image/*">
+                                            @error('stamp_file')
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                            <div class="form-text">Допустимые форматы: JPG, PNG, GIF. Максимальный размер: 2MB</div>
+                                            
+                                            @if($user->stamp_file)
+                                                <div class="mt-2">
+                                                    <img src="{{ $user->getStampUrl() }}" alt="Печать" class="img-thumbnail" style="max-height: 100px;">
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endif
 
                                 <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                                     <button type="submit" class="btn btn-primary">

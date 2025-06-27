@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable
 {
@@ -24,7 +25,17 @@ class User extends Authenticatable
         'role',
         'phone',
         'avatar',
-        'partner_id'
+        'partner_id',
+        'is_active',
+        'bank',
+        'bik',
+        'checking_account',
+        'correspondent_account',
+        'recipient_bank',
+        'inn',
+        'kpp',
+        'signature_file',
+        'stamp_file'
     ];
 
     /**
@@ -46,6 +57,51 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+    
+    /**
+     * Получить завершенные пользователем туры.
+     */
+    public function completedTours()
+    {
+        return $this->hasMany(UserCompletedTour::class);
+    }
+    
+    /**
+     * Проверить, завершил ли пользователь указанный тур.
+     *
+     * @param string $tourKey
+     * @return bool
+     */
+    public function hasTourCompleted(string $tourKey): bool
+    {
+        return $this->completedTours()->where('tour_key', $tourKey)->exists();
+    }
+    
+    /**
+     * Отмечает тур как завершенный для пользователя.
+     *
+     * @param string $tourKey
+     * @return void
+     */
+    public function markTourCompleted(string $tourKey): void
+    {
+        UserCompletedTour::updateOrCreate(
+            ['user_id' => $this->id, 'tour_key' => $tourKey],
+            ['user_id' => $this->id, 'tour_key' => $tourKey]
+        );
+    }
+    
+    /**
+     * Сбрасывает все завершенные туры для пользователя.
+     *
+     * @return void
+     */
+    public function resetTours(): void
+    {
+        $this->completedTours()->delete();
+    }
+    
+    // Отношения определены ниже
     
     /**
      * Проверяет, является ли пользователь администратором.
@@ -102,6 +158,34 @@ class User extends Authenticatable
     }
     
     /**
+     * Получает URL файла подписи пользователя.
+     *
+     * @return string
+     */
+    public function getSignatureUrl()
+    {
+        if ($this->signature_file && Storage::disk('public')->exists('signatures/' . $this->signature_file)) {
+            return Storage::url('signatures/' . $this->signature_file);
+        }
+        
+        return '/images/no-signature.png';
+    }
+    
+    /**
+     * Получает URL файла печати пользователя.
+     *
+     * @return string
+     */
+    public function getStampUrl()
+    {
+        if ($this->stamp_file && Storage::disk('public')->exists('stamps/' . $this->stamp_file)) {
+            return Storage::url('stamps/' . $this->stamp_file);
+        }
+        
+        return '/images/no-stamp.png';
+    }
+    
+    /**
      * Получает проекты, связанные с клиентом по номеру телефона.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
@@ -109,5 +193,15 @@ class User extends Authenticatable
     public function clientProjects()
     {
         return $this->hasMany(Project::class, 'phone', 'phone');
+    }
+
+    /**
+     * Получает все проекты, связанные с партнером.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function projects()
+    {
+        return $this->hasMany(Project::class, 'partner_id');
     }
 }

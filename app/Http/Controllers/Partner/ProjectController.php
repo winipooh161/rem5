@@ -199,6 +199,7 @@ class ProjectController extends Controller
         $project->contract_date = $request->contract_date;
         $project->contract_number = $request->contract_number;
         $project->work_start_date = $request->work_start_date;
+        $project->work_end_date = $request->work_end_date;
         $project->work_amount = $request->work_amount ?? 0;
         $project->materials_amount = $request->materials_amount ?? 0;
         $project->camera_link = $request->camera_link;
@@ -305,6 +306,7 @@ class ProjectController extends Controller
             'contract_date' => 'nullable|date',
             'contract_number' => 'nullable|string|max:100',
             'work_start_date' => 'nullable|date',
+            'work_end_date' => 'nullable|date',
             'work_amount' => 'nullable|numeric|min:0',
             'materials_amount' => 'nullable|numeric|min:0',
             'camera_link' => 'nullable|url|max:500',
@@ -361,6 +363,7 @@ class ProjectController extends Controller
         $project->contract_date = $request->contract_date;
         $project->contract_number = $request->contract_number;
         $project->work_start_date = $request->work_start_date;
+        $project->work_end_date = $request->work_end_date;
         $project->work_amount = $request->work_amount ?? 0;
         $project->materials_amount = $request->materials_amount ?? 0;
         $project->camera_link = $request->camera_link;

@@ -53,6 +53,8 @@
                         <button type="button" id="add-material" class="btn btn-outline-primary">
                             <i class="fas fa-plus me-1"></i>Добавить материал
                         </button>
+                        <button type="button" id="add-material-5" class="btn btn-outline-primary">+5</button>
+                        <button type="button" id="add-material-10" class="btn btn-outline-primary">+10</button>
                         <button type="submit" class="btn btn-success">
                             <i class="fas fa-calculator me-1"></i>Рассчитать
                         </button>
@@ -152,6 +154,11 @@
 <script>
 // Ждем полной загрузки всех библиотек
 window.addEventListener('load', function() {
+    // Проверяем, не был ли уже инициализирован калькулятор
+    if (window.calculatorInitialized) {
+        return;
+    }
+
     // Проверяем загрузку jQuery и Select2
     if (typeof jQuery === 'undefined') {
         console.error('jQuery не загружен');
@@ -166,6 +173,7 @@ window.addEventListener('load', function() {
         script.src = 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js';
         script.onload = function() {
             console.log('Select2 загружен динамически');
+            window.calculatorInitialized = true;
             initializeCalculator();
         };
         document.head.appendChild(script);
@@ -173,6 +181,7 @@ window.addEventListener('load', function() {
     }
     
     // Если все библиотеки загружены, инициализируем калькулятор
+    window.calculatorInitialized = true;
     initializeCalculator();
 });
 
@@ -216,23 +225,32 @@ function initializeCalculator() {
         }
     }
     
-    // Добавление нового материала
-    document.getElementById('add-material').addEventListener('click', function() {
-        materialIndex++;
+    // Добавление нового материала (по умолчанию 1)
+    function addMaterials(count = 1) {
         const container = document.getElementById('materials-container');
-        const newRow = createMaterialRow(materialIndex);
-        container.appendChild(newRow);
-        
-        // Инициализируем Select2 для нового селекта
-        const newSelect = newRow.querySelector('.material-select');
-        try {
-            initializeSelect2($(newSelect));
-        } catch (error) {
-            console.warn('Не удалось инициализировать Select2 для нового элемента:', error);
+        for (let i = 0; i < count; i++) {
+            materialIndex++;
+            const newRow = createMaterialRow(materialIndex);
+            container.appendChild(newRow);
+            // Инициализируем Select2 для нового селекта
+            const newSelect = newRow.querySelector('.material-select');
+            try {
+                initializeSelect2($(newSelect));
+            } catch (error) {
+                console.warn('Не удалось инициализировать Select2 для нового элемента:', error);
+            }
         }
-        
         updateRemoveButtons();
         saveDataToStorage();
+    }
+    document.getElementById('add-material').addEventListener('click', function() {
+        addMaterials(1);
+    });
+    document.getElementById('add-material-5').addEventListener('click', function() {
+        addMaterials(5);
+    });
+    document.getElementById('add-material-10').addEventListener('click', function() {
+        addMaterials(10);
     });
 
     // Обработка изменения материала
@@ -1042,32 +1060,6 @@ function initializeCalculator() {
 </style>
 
 <script>
-// Ждем полной загрузки всех библиотек
-window.addEventListener('load', function() {
-    // Проверяем загрузку jQuery и Select2
-    if (typeof jQuery === 'undefined') {
-        console.error('jQuery не загружен');
-        alert('Ошибка: jQuery не загружен');
-        return;
-    }
-    
-    if (typeof jQuery.fn.select2 === 'undefined') {
-        console.error('Select2 не загружен');
-        // Пытаемся загрузить Select2 динамически
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js';
-        script.onload = function() {
-            console.log('Select2 загружен динамически');
-            initializeCalculator();
-        };
-        document.head.appendChild(script);
-        return;
-    }
-    
-    // Если все библиотеки загружены, инициализируем калькулятор
-    initializeCalculator();
-});
-
 function initializeCalculator() {
     let materialIndex = 0;
     const materialsData = @json($materials);
@@ -1108,23 +1100,32 @@ function initializeCalculator() {
         }
     }
     
-    // Добавление нового материала
-    document.getElementById('add-material').addEventListener('click', function() {
-        materialIndex++;
+    // Добавление нового материала (по умолчанию 1)
+    function addMaterials(count = 1) {
         const container = document.getElementById('materials-container');
-        const newRow = createMaterialRow(materialIndex);
-        container.appendChild(newRow);
-        
-        // Инициализируем Select2 для нового селекта
-        const newSelect = newRow.querySelector('.material-select');
-        try {
-            initializeSelect2($(newSelect));
-        } catch (error) {
-            console.warn('Не удалось инициализировать Select2 для нового элемента:', error);
+        for (let i = 0; i < count; i++) {
+            materialIndex++;
+            const newRow = createMaterialRow(materialIndex);
+            container.appendChild(newRow);
+            // Инициализируем Select2 для нового селекта
+            const newSelect = newRow.querySelector('.material-select');
+            try {
+                initializeSelect2($(newSelect));
+            } catch (error) {
+                console.warn('Не удалось инициализировать Select2 для нового элемента:', error);
+            }
         }
-        
         updateRemoveButtons();
         saveDataToStorage();
+    }
+    document.getElementById('add-material').addEventListener('click', function() {
+        addMaterials(1);
+    });
+    document.getElementById('add-material-5').addEventListener('click', function() {
+        addMaterials(5);
+    });
+    document.getElementById('add-material-10').addEventListener('click', function() {
+        addMaterials(10);
     });
 
     // Обработка изменения материала
@@ -1169,7 +1170,7 @@ function initializeCalculator() {
         calculateMaterials();
     });
 
-    // Создание строки материала - обновляем для адаптивности
+    // Создание строки материала
     function createMaterialRow(index) {
         const div = document.createElement('div');
         div.className = 'material-row mb-4';

@@ -37,10 +37,10 @@
 
         <!-- Список документов -->
         <div class="documents-container">
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3 overflow-hidden">
                 @foreach($project->documentFiles as $file)
                     <div class="col document-item" data-type="{{ $file->document_type }}">
-                        <div class="card h-100 document-card">
+                        <div class="card h-100 document-card overflow-hidden">
                             <div class="card-body">
                                 <div class="d-flex align-items-center mb-3">
                                     <div class="document-icon me-3">
@@ -77,7 +77,8 @@
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Вы уверены?')" title="Удалить">
                                                 <i class="fas fa-trash"></i>
-                                            </form>
+                                            </button>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
@@ -102,6 +103,7 @@
                     @csrf
                     <input type="hidden" name="file_type" value="document">
                     
+                    <!-- Основная форма (будет скрыта при загрузке) -->
                     <div class="mb-3">
                         <label for="documentFile" class="form-label">Выберите файл</label>
                         <input type="file" class="form-control" id="documentFile" name="file" required>
@@ -124,9 +126,17 @@
                         <textarea class="form-control" id="documentDescription" name="description" rows="3" placeholder="Добавьте краткое описание документа"></textarea>
                     </div>
                     
+                    <!-- Контейнер прогресса загрузки (по умолчанию скрыт) -->
+                    <div class="upload-progress d-none">
+                        <div class="progress mb-3">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="progress-info text-center">Загрузка...</div>
+                    </div>
+                    
                     <div class="d-flex flex-column flex-md-row justify-content-end">
                         <button type="button" class="btn btn-secondary mb-2 mb-md-0 me-md-2 w-100 w-md-auto" data-bs-dismiss="modal">Отмена</button>
-                        <button type="submit" class="btn btn-primary w-100 w-md-auto">Загрузить</button>
+                        <button type="button" class="btn btn-primary w-100 w-md-auto upload-file-btn">Загрузить</button>
                     </div>
                 </form>
             </div>
